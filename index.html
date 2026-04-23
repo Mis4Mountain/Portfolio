@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Student Nutrition Impact Dashboard — Portfolio Demo</title>
+<meta name="description" content="Interactive analytics dashboard visualising student nutrition program reach, food procurement, and financial data. Built as a portfolio demonstration using publicly sourced and mock data."/>
+<meta property="og:title" content="Student Nutrition Impact Dashboard"/>
+<meta property="og:description" content="Portfolio demo: interactive dashboard built with Chart.js and vanilla JS, visualising program reach, procurement, and financial data for a school nutrition context."/>
+<meta property="og:type" content="website"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --green:#4CB549; --gd:#3a9438; --gp:#eaf6e9;
+  --blue:#0D95C9;  --bd:#0a7aa6; --bp:#e0f3fb;
+  --red:#E64339;   --rp:#fdecea;
+  --teal:#1aacaa;  --orange:#f5a623;
+  --dark:#34454D;  --mid:#5c7078; --border:#dde3e6;
+  --light:#f4f7f9; --white:#fff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--light);color:var(--dark);font-size:14px}
+
+/* ── Header ── */
+header{background:var(--dark);color:var(--white);padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:200;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.logo-mark{width:34px;height:34px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px;color:#fff;flex-shrink:0}
+header h1{font-size:16px;font-weight:600;margin-left:12px}
+header h1 span{color:var(--green)}
+.hdr-right{display:flex;align-items:center;gap:16px}
+.yr-filter{display:flex;gap:6px}
+.yr-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#c8d4d7;border-radius:6px;padding:5px 13px;font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.yr-btn:hover{background:rgba(255,255,255,.18)}
+.yr-btn.active{background:var(--green);border-color:var(--green);color:#fff}
+.yr-badge{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:4px 14px;font-size:11px;font-weight:600;color:#b8c8cc;white-space:nowrap}
+.covid-banner{background:#f5a62322;border:1px solid #f5a62366;border-radius:6px;padding:4px 12px;font-size:11px;color:#c8820a;display:none}
+
+/* ── Layout ── */
+main{max-width:1300px;margin:0 auto;padding:22px 28px 48px}
+.section-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--mid);margin-bottom:11px;padding-left:2px}
+.row{display:grid;gap:16px;margin-bottom:22px}
+.r3-1{grid-template-columns:3fr 1fr}
+.r2-2{grid-template-columns:1fr 1fr}
+.r3col{grid-template-columns:1fr 1fr 1fr}
+
+/* ── Card ── */
+.card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:20px 22px;transition:box-shadow .2s}
+.card:hover{box-shadow:0 4px 18px rgba(52,69,77,.08)}
+.card-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.card-title{font-size:13px;font-weight:700;color:var(--dark)}
+.card-sub{font-size:11px;color:var(--mid);margin-top:2px}
+.ctag{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--gp);color:var(--gd);white-space:nowrap;flex-shrink:0}
+.ctag.blue{background:var(--bp);color:var(--bd)}
+.ctag.red{background:var(--rp);color:var(--red)}
+.chart-wrap{position:relative}
+.chart-wrap canvas{width:100%!important}
+
+/* ── KPI ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px}
+.kpi{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:20px 22px 18px;position:relative;overflow:hidden;transition:box-shadow .2s}
+.kpi:hover{box-shadow:0 4px 18px rgba(52,69,77,.1)}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}
+.kpi.g::before{background:var(--green)}
+.kpi.b::before{background:var(--blue)}
+.kpi.t::before{background:var(--teal)}
+.kpi.r::before{background:var(--red)}
+.kpi-icon{display:block;margin-bottom:9px;width:28px;height:28px}
+.kpi-val{font-size:30px;font-weight:700;line-height:1;margin-bottom:3px}
+.kpi-lbl{font-size:12px;color:var(--mid);font-weight:500;margin-bottom:10px}
+.kpi-delta{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px}
+.du{background:var(--gp);color:var(--gd)} .dd{background:var(--rp);color:var(--red)} .df{background:#f0f2f4;color:var(--mid)}
+
+/* ── Donut ── */
+.donut-row{display:flex;gap:22px;align-items:center;margin-top:4px}
+.donut-wrap{flex:0 0 136px;position:relative;height:136px}
+.donut-wrap canvas{width:100%!important;height:100%!important}
+.donut-ctr{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none}
+.donut-ctr-val{font-size:18px;font-weight:700;color:var(--dark);line-height:1}
+.donut-ctr-lbl{font-size:9px;color:var(--mid);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.legend-list{flex:1;display:flex;flex-direction:column;gap:7px}
+.leg-item{display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;padding:5px 8px;border-radius:8px;transition:background .15s;border:1px solid transparent}
+.leg-item:hover{background:#f8fafb}
+.leg-item.active{background:var(--gp);border-color:var(--green)}
+.leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.leg-lbl{flex:1;color:var(--dark)}
+.leg-pct{font-weight:700;font-size:13px;color:var(--dark)}
+.leg-amt{font-size:10px;color:var(--mid);margin-left:4px}
+
+/* ── Revenue / Expense detail expansion ── */
+.detail-panel{overflow:hidden;max-height:0;transition:max-height .35s ease;margin-top:0}
+.detail-panel.open{max-height:600px;margin-top:14px}
+.detail-inner{border:1px solid var(--border);border-radius:10px;padding:16px 18px;background:var(--light)}
+.detail-title{font-size:12px;font-weight:700;color:var(--dark);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.detail-close{background:none;border:none;color:var(--mid);cursor:pointer;font-size:18px;line-height:1;padding:0;margin:0}
+.hbar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:12px}
+.hbar-label{width:200px;flex-shrink:0;color:var(--dark)}
+.hbar-track{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.hbar-fill{height:100%;border-radius:4px;background:var(--green);transition:width .5s ease}
+.hbar-fill.blue{background:var(--blue)}
+.hbar-fill.teal{background:var(--teal)}
+.hbar-amt{width:56px;text-align:right;font-weight:600;color:var(--dark);font-size:11px}
+.donor-tag{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600;margin-left:6px}
+.dtag-corp{background:#e8f4fd;color:#0a6fa0}
+.dtag-gift{background:var(--gp);color:var(--gd)}
+.dtag-ind{background:#fef3e2;color:#a06a0a}
+
+/* ── Expense accordion ── */
+.exp-cat{margin-bottom:8px;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.exp-cat-hdr{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;background:var(--white);transition:background .15s}
+.exp-cat-hdr:hover{background:#f8fafb}
+.exp-cat-hdr.open{background:var(--gp)}
+.exp-cat-icon{flex-shrink:0;width:20px;height:20px;display:flex;align-items:center;justify-content:center}
+.exp-cat-icon svg{width:20px;height:20px}
+.exp-cat-name{flex:1;font-size:13px;font-weight:600;color:var(--dark)}
+.exp-cat-amt{font-size:13px;font-weight:700;color:var(--dark);margin-right:10px}
+.exp-cat-pct{font-size:11px;color:var(--mid);margin-right:8px}
+.exp-chevron{font-size:12px;color:var(--mid);transition:transform .2s}
+.exp-chevron.open{transform:rotate(180deg)}
+.exp-body{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.exp-body.open{max-height:500px}
+.exp-sublist{padding:10px 16px 14px;border-top:1px solid var(--border);background:var(--light)}
+.exp-sub{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
+.exp-sub:last-child{border-bottom:none}
+.exp-sub-name{flex:1;color:var(--dark)}
+.exp-sub-bar{width:100px;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.exp-sub-fill{height:100%;border-radius:3px;background:var(--green)}
+.exp-sub-fill.blue{background:var(--blue)}
+.exp-sub-fill.orange{background:var(--orange)}
+.exp-sub-fill.teal{background:var(--teal)}
+.exp-sub-amt{width:52px;text-align:right;font-weight:600;font-size:11px}
+.exp-sub-pct{width:34px;text-align:right;font-size:10px;color:var(--mid)}
+
+/* ── Schools table ── */
+.data-table{width:100%;border-collapse:collapse;font-size:12px}
+.data-table th{text-align:left;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--mid);padding:0 10px 10px 0;border-bottom:2px solid var(--border)}
+.data-table td{padding:8px 10px 8px 0;border-bottom:1px solid var(--border);color:var(--dark);vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.rank-badge{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;font-size:11px;font-weight:700;background:var(--light);color:var(--mid)}
+.rank-badge.top3{background:var(--gp);color:var(--gd)}
+.bar-cell{display:flex;align-items:center;gap:7px}
+.mini-bar{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.mini-bar-fill{height:100%;border-radius:3px;background:var(--green);transition:width .5s}
+.mini-bar-fill.blue{background:var(--blue)}
+.pct-lbl{font-size:11px;font-weight:600;color:var(--mid);width:32px;text-align:right}
+.pill{display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700}
+.pg{background:var(--gp);color:var(--gd)} .pb{background:var(--bp);color:var(--bd)} .pr{background:var(--rp);color:var(--red)} .pt{background:#e0f5f5;color:#138888}
+.hist-btn{background:none;border:1px solid var(--border);color:var(--mid);border-radius:6px;padding:3px 9px;font-size:10px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+.hist-btn:hover,.hist-btn.open{background:var(--blue);border-color:var(--blue);color:#fff}
+.hist-row{display:none}
+.hist-row.open{display:table-row}
+.hist-cell{padding:0 0 10px 32px!important;border-bottom:1px solid var(--border)!important}
+.hist-chart-wrap{height:80px;width:100%;position:relative}
+
+/* ── Food Procurement ── */
+.food-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.food-tab{background:var(--light);border:1px solid var(--border);color:var(--mid);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.food-tab:hover{background:#f0f2f4}
+.food-tab.active{background:var(--green);border-color:var(--green);color:#fff}
+.food-table-wrap{overflow-x:auto}
+.food-table{width:100%;border-collapse:collapse;font-size:12px}
+.food-table th{text-align:left;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--mid);padding:0 12px 10px 0;border-bottom:2px solid var(--border)}
+.food-table td{padding:8px 12px 8px 0;border-bottom:1px solid var(--border);color:var(--dark);vertical-align:middle}
+.food-table tr:last-child td{border-bottom:none}
+.food-cost-bar{display:flex;align-items:center;gap:8px}
+.food-bar-track{width:80px;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.food-bar-fill{height:100%;border-radius:3px}
+
+/* ── Progress bars ── */
+.prog-row{display:flex;flex-direction:column;gap:12px;margin-top:4px}
+.prog-item .prog-lbl{display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px;font-weight:500}
+.prog-item .prog-lbl span:last-child{font-weight:700}
+.prog-track{height:7px;background:var(--border);border-radius:4px;overflow:hidden}
+.prog-fill{height:100%;border-radius:4px}
+
+/* ── Screening ── */
+.screen-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px}
+.screen-stat{background:var(--light);border-radius:10px;padding:12px 14px;border:1px solid var(--border)}
+.screen-stat .sv{font-size:24px;font-weight:700;line-height:1}
+.screen-stat .sl{font-size:11px;color:var(--mid);margin-top:4px}
+.screen-stat .sn{font-size:10px;color:var(--gd);margin-top:5px;font-weight:600}
+
+/* ── Scorecard ── */
+.score-status{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.s-on{background:var(--gp);color:var(--gd)} .s-in{background:var(--bp);color:var(--bd)} .s-at{background:var(--rp);color:var(--red)}
+
+/* ── Misc ── */
+.dash-footer{text-align:center;font-size:11px;color:var(--mid);margin-top:14px;padding-top:16px;border-top:1px solid var(--border)}
+.covid-note{display:inline-block;background:#fff8e1;border:1px solid #f5a62366;border-radius:6px;padding:3px 10px;font-size:10px;color:#a06a0a;font-weight:600;margin-left:8px}
+
+/* ── Data provenance badges ── */
+.src-v{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;background:#eaf6e9;color:#2e7a2c;border:1px solid #b8e0b6;white-space:nowrap;vertical-align:middle;margin-left:6px}
+.src-m{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;background:#f4f7f9;color:#5c7078;border:1px solid #dde3e6;white-space:nowrap;vertical-align:middle;margin-left:6px}
+.src-p{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;background:#fff8e1;color:#a06a0a;border:1px solid #f5e09a;white-space:nowrap;vertical-align:middle;margin-left:6px}
+
+/* ── Provenance panel ── */
+.prov-panel{background:var(--white);border:1px solid var(--border);border-radius:12px;margin-bottom:22px;overflow:hidden}
+.prov-toggle{display:flex;align-items:center;gap:10px;padding:13px 18px;cursor:pointer;user-select:none}
+.prov-toggle:hover{background:#f8fafb}
+.prov-icon{font-size:15px}
+.prov-title{flex:1;font-size:12px;font-weight:700;color:var(--dark)}
+.prov-hint{font-size:11px;color:var(--mid)}
+.prov-chevron{font-size:11px;color:var(--mid);transition:transform .2s}
+.prov-chevron.open{transform:rotate(180deg)}
+.prov-body{max-height:0;overflow:hidden;transition:max-height .35s ease}
+.prov-body.open{max-height:600px}
+.prov-inner{padding:0 18px 18px;border-top:1px solid var(--border)}
+.prov-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:14px}
+.prov-col h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px}
+.prov-col.verified h4{color:var(--gd)}
+.prov-col.mock h4{color:var(--mid)}
+.prov-row{display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid #f0f2f4;font-size:12px}
+.prov-row:last-child{border-bottom:none}
+.prov-row-icon{font-size:11px;flex-shrink:0;margin-top:1px}
+.prov-row-text{color:var(--dark)}
+.prov-row-src{font-size:10px;color:var(--mid);display:block;margin-top:1px}
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:center">
+    <div class="logo-mark">T</div>
+    <h1 style="margin-left:12px">Toronto Foundation for <span>Student Success</span> — Impact Dashboard</h1>
+  </div>
+  <div class="hdr-right">
+    <div id="covidBanner" class="covid-banner">⚠ COVID-19 impacted year — program volumes significantly reduced</div>
+    <div class="yr-filter" id="yrFilter">
+      <button class="yr-btn" onclick="switchYear('2019-20',this)">2019–20</button>
+      <button class="yr-btn" onclick="switchYear('2020-21',this)">2020–21</button>
+      <button class="yr-btn" onclick="switchYear('2021-22',this)">2021–22</button>
+      <button class="yr-btn" onclick="switchYear('2022-23',this)">2022–23</button>
+      <button class="yr-btn active" onclick="switchYear('2023-24',this)">2023–24</button>
+    </div>
+    <div class="yr-badge" id="yrBadge">Fiscal Year 2023–24</div>
+  </div>
+</header>
+
+<main>
+
+<!-- ══ DATA PROVENANCE PANEL ══ -->
+<div class="prov-panel">
+  <div class="prov-toggle" onclick="toggleProv()">
+    <span class="prov-icon">🔍</span>
+    <span class="prov-title">Data Provenance — What's real vs. illustrative?</span>
+    <span class="prov-hint">2 verified sources · all other data is mock for portfolio demonstration</span>
+    <span class="prov-chevron" id="provChev">▼</span>
+  </div>
+  <div class="prov-body" id="provBody">
+    <div class="prov-inner">
+      <div class="prov-grid">
+        <div class="prov-col verified">
+          <h4>✓ Verified — sourced from TFSS documents</h4>
+          <div class="prov-row"><span class="prov-row-icon">✓</span><div><span class="prov-row-text">Total meals served: <strong>36.7M</strong> (FY 2023–24 annual total only)</span><span class="prov-row-src">TFSS Annual Report 2023–24</span></div></div>
+          <div class="prov-row"><span class="prov-row-icon">✓</span><div><span class="prov-row-text">Active programs: <strong>846</strong> (FY 2023–24 only)</span><span class="prov-row-src">TFSS Annual Report 2023–24</span></div></div>
+          <div class="prov-row"><span class="prov-row-icon">✓</span><div><span class="prov-row-text">Revenue split: <strong>82% grants / 15% donations / 3% investment</strong></span><span class="prov-row-src">TFSS Annual Report 2023–24 (pie chart)</span></div></div>
+          <div class="prov-row"><span class="prov-row-icon">✓</span><div><span class="prov-row-text">Expense split: <strong>94% programs / 4% fundraising / 2% admin</strong></span><span class="prov-row-src">TFSS Annual Report 2023–24 (pie chart)</span></div></div>
+          <div class="prov-row"><span class="prov-row-icon">✓</span><div><span class="prov-row-text">City of Toronto identified as largest single government funder</span><span class="prov-row-src">TFSS Annual Report 2023–24</span></div></div>
+          <div class="prov-row"><span class="prov-row-icon">✓</span><div><span class="prov-row-text">Vision &amp; hearing screening and glasses distribution <em>programs exist</em></span><span class="prov-row-src">TFSS Annual Report 2023–24</span></div></div>
+          <div class="prov-row"><span class="prov-row-icon">✓</span><div><span class="prov-row-text">Emergency Fund program: applications received &amp; fulfilled</span><span class="prov-row-src">TFSS Annual Report 2023–24</span></div></div>
+          <div class="prov-row"><span class="prov-row-icon">✓</span><div><span class="prov-row-text">Strategic Priority 3: data-driven decision-making &amp; CDS migration</span><span class="prov-row-src">Strategic Business Plan 2023–26</span></div></div>
+          <div class="prov-row"><span class="prov-row-icon">✓</span><div><span class="prov-row-text">BNG (Bridging the Nutrition Gap) digitalization initiative</span><span class="prov-row-src">Strategic Business Plan 2023–26</span></div></div>
+          <div class="prov-row"><span class="prov-row-icon">✓</span><div><span class="prov-row-text">All four strategic priorities and their descriptions</span><span class="prov-row-src">Strategic Business Plan 2023–26</span></div></div>
+        </div>
+        <div class="prov-col mock">
+          <h4>~ Illustrative — generated for portfolio demonstration</h4>
+          <div class="prov-row"><span class="prov-row-icon">~</span><div><span class="prov-row-text">All prior-year figures (2019–20 through 2022–23) — proportionally scaled estimates</span></div></div>
+          <div class="prov-row"><span class="prov-row-icon">~</span><div><span class="prov-row-text">All monthly breakdowns (meals trend, emergency fund applications)</span></div></div>
+          <div class="prov-row"><span class="prov-row-icon">~</span><div><span class="prov-row-text">Students supported (225K) — estimated from program breadth</span></div></div>
+          <div class="prov-row"><span class="prov-row-icon">~</span><div><span class="prov-row-text">Cost per meal ($2.14) — derived estimate from spend ÷ meals</span></div></div>
+          <div class="prov-row"><span class="prov-row-icon">~</span><div><span class="prov-row-text">Individual school names and their meal volumes</span></div></div>
+          <div class="prov-row"><span class="prov-row-icon">~</span><div><span class="prov-row-text">Specific donor names and grant amounts within revenue sources</span></div></div>
+          <div class="prov-row"><span class="prov-row-icon">~</span><div><span class="prov-row-text">Expense sub-categories (driver wages, van fuel, kitchen equipment, etc.)</span></div></div>
+          <div class="prov-row"><span class="prov-row-icon">~</span><div><span class="prov-row-text">All food procurement item-level data (quantities, unit costs, specific products)</span></div></div>
+          <div class="prov-row"><span class="prov-row-icon">~</span><div><span class="prov-row-text">Vision &amp; hearing screening specific counts and glasses distributed volumes</span></div></div>
+          <div class="prov-row"><span class="prov-row-icon">~</span><div><span class="prov-row-text">Emergency Fund application counts (3,210 etc.)</span></div></div>
+          <div class="prov-row"><span class="prov-row-icon">~</span><div><span class="prov-row-text">Budget utilization percentages per program area</span></div></div>
+          <div class="prov-row"><span class="prov-row-icon">~</span><div><span class="prov-row-text">Strategic scorecard progress percentages</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ KPI ══ -->
+<p class="section-lbl">Program Reach &amp; Impact</p>
+<div class="kpi-grid">
+  <div class="kpi g">
+    <span class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3"/><path d="M21 15v7"/></svg></span>
+    <div class="kpi-val" id="k-meals">36.7M</div>
+    <div class="kpi-lbl">Meals &amp; Snacks Served <span class="src-v" id="badge-meals">✓ Annual Report</span></div>
+    <span class="kpi-delta" id="k-meals-d"></span>
+  </div>
+  <div class="kpi b">
+    <span class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/><path d="M9 9h1"/><path d="M14 9h1"/><path d="M9 13h1"/><path d="M14 13h1"/></svg></span>
+    <div class="kpi-val" id="k-prog">846</div>
+    <div class="kpi-lbl">Active School Programs <span class="src-v" id="badge-prog">✓ Annual Report</span></div>
+    <span class="kpi-delta" id="k-prog-d"></span>
+  </div>
+  <div class="kpi t">
+    <span class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></span>
+    <div class="kpi-val" id="k-stu">225K</div>
+    <div class="kpi-lbl">Students Supported <span class="src-m">~ Illustrative</span></div>
+    <span class="kpi-delta" id="k-stu-d"></span>
+  </div>
+  <div class="kpi r">
+    <span class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg></span>
+    <div class="kpi-val" id="k-ef">3,210</div>
+    <div class="kpi-lbl">Emergency Fund Grants <span class="src-m">~ Illustrative</span></div>
+    <span class="kpi-delta" id="k-ef-d"></span>
+  </div>
+</div>
+
+<!-- ══ MEALS TREND + COST ══ -->
+<p class="section-lbl">Meals Program <span class="src-m">~ Monthly breakdown illustrative · annual total verified for 2023–24</span></p>
+<div class="row r3-1">
+  <div class="card">
+    <div class="card-hdr">
+      <div><div class="card-title">Monthly Meals &amp; Snacks Served</div><div class="card-sub">Sep–Jun school year; Jul–Aug correctly shown as zero</div></div>
+      <span class="ctag" id="meals-tag">2023–24</span>
+    </div>
+    <div class="chart-wrap" style="height:210px"><canvas id="mealsChart"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-hdr"><div><div class="card-title">Cost per Meal</div><div class="card-sub">Blended average, all programs</div></div></div>
+    <div style="text-align:center;padding:6px 0 16px">
+      <div style="font-size:40px;font-weight:800;color:var(--green);line-height:1" id="cpm-val">$2.14</div>
+      <div style="font-size:11px;color:var(--mid);margin-top:5px">per meal served</div>
+    </div>
+    <div class="prog-row" id="cpm-hist"></div>
+  </div>
+</div>
+
+<!-- ══ TOP 10 SCHOOLS ══ -->
+<p class="section-lbl">Top 10 Schools by Meals Served <span class="src-m">~ Illustrative — school-level data not published</span></p>
+<div class="card">
+  <div class="card-hdr">
+    <div><div class="card-title" id="schools-title">Ranked for FY 2023–24</div><div class="card-sub">Click "History" to view 5-year trend for any school</div></div>
+    <span class="ctag blue">Top 10</span>
+  </div>
+  <table class="data-table">
+    <thead><tr>
+      <th style="width:28px">#</th>
+      <th>School</th>
+      <th>Program</th>
+      <th>Meals Served</th>
+      <th style="width:140px">Share of Top 10</th>
+      <th style="width:80px">History</th>
+    </tr></thead>
+    <tbody id="schoolTbody"></tbody>
+  </table>
+</div>
+
+<!-- ══ PROGRAMS BY TYPE ══ -->
+<p class="section-lbl" style="margin-top:22px">Program Mix <span class="src-m">~ Illustrative</span></p>
+<div class="row r2-2" style="margin-bottom:0">
+  <div class="card">
+    <div class="card-hdr">
+      <div><div class="card-title">Programs by Type</div><div class="card-sub" id="prog-sub">846 active programs across TDSB schools</div></div>
+      <span class="ctag blue" id="prog-tag">846 total</span>
+    </div>
+    <div class="donut-row">
+      <div class="donut-wrap"><canvas id="progTypeChart"></canvas>
+        <div class="donut-ctr"><div class="donut-ctr-val" id="prog-ctr-val">846</div><div class="donut-ctr-lbl">Programs</div></div>
+      </div>
+      <div class="legend-list" id="progLegend"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hdr">
+      <div><div class="card-title">Emergency Fund — Monthly Applications</div><div class="card-sub" id="ef-sub">97% fulfillment rate, FY 2023–24</div></div>
+      <span class="ctag red" id="ef-tag">97% Fulfilled</span>
+    </div>
+    <div class="chart-wrap" style="height:168px"><canvas id="efChart"></canvas></div>
+  </div>
+</div>
+
+<!-- ══ FINANCIAL — REVENUE ══ -->
+<p class="section-lbl" style="margin-top:22px">Financial Summary <span class="src-p">~ Percentages verified · dollar amounts &amp; sub-items illustrative</span></p>
+<div class="row r2-2">
+
+  <div class="card" id="revCard">
+    <div class="card-hdr">
+      <div><div class="card-title">Revenue by Source</div><div class="card-sub" id="rev-sub">Click any source to expand detail</div></div>
+      <span class="ctag blue" id="rev-tag">$78.4M</span>
+    </div>
+    <div class="donut-row">
+      <div class="donut-wrap"><canvas id="revChart"></canvas>
+        <div class="donut-ctr"><div class="donut-ctr-val" id="rev-ctr">$78M</div><div class="donut-ctr-lbl">Total Rev.</div></div>
+      </div>
+      <div class="legend-list" id="revLegend"></div>
+    </div>
+    <div class="detail-panel" id="revDetail">
+      <div class="detail-inner">
+        <div class="detail-title"><span id="revDetailTitle">Government Grants</span><button class="detail-close" onclick="closeRevDetail()">×</button></div>
+        <div id="revDetailBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="expCard">
+    <div class="card-hdr">
+      <div><div class="card-title">Expense Allocation</div><div class="card-sub">Click any category to expand sub-items</div></div>
+      <span class="ctag" id="exp-tag">94% Programs</span>
+    </div>
+    <div id="expAccordion"></div>
+  </div>
+
+</div>
+
+<!-- ══ FOOD PROCUREMENT ══ -->
+<p class="section-lbl">Food Procurement — Item-Level Detail <span class="src-m">~ Illustrative — item-level data not published by TFSS</span></p>
+<div class="card" style="margin-bottom:22px">
+  <div class="card-hdr">
+    <div><div class="card-title">What We Buy — Grocery &amp; Produce Breakdown</div><div class="card-sub" id="food-sub">$38.4M in food purchasing across 5 categories · FY 2023–24</div></div>
+    <span class="ctag" id="food-tag">$38.4M Food Spend</span>
+  </div>
+  <div style="display:grid;grid-template-columns:200px 1fr;gap:22px;align-items:start">
+    <div>
+      <div class="donut-wrap" style="height:160px;flex:none;width:160px"><canvas id="foodCatChart"></canvas>
+        <div class="donut-ctr"><div class="donut-ctr-val" id="food-ctr-val">$38M</div><div class="donut-ctr-lbl">Food Spend</div></div>
+      </div>
+    </div>
+    <div>
+      <div class="food-tabs" id="foodTabs"></div>
+      <div class="food-table-wrap"><table class="food-table"><thead><tr>
+        <th>Item</th><th>Annual Quantity</th><th>Unit Cost</th><th>Total Spend</th><th style="width:100px">% of Category</th>
+      </tr></thead><tbody id="foodTbody"></tbody></table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ HEALTH + BUDGET ══ -->
+<p class="section-lbl">Health Services &amp; Budget Utilization <span class="src-m">~ Illustrative — programs verified, specific counts are mock</span></p>
+<div class="row r2-2" style="margin-bottom:22px">
+  <div class="card">
+    <div class="card-hdr"><div><div class="card-title">Vision &amp; Hearing Screenings</div><div class="card-sub">Healthy Schools program outcomes</div></div><span class="ctag" id="health-tag">2023–24</span></div>
+    <div class="screen-grid" id="screenGrid"></div>
+  </div>
+  <div class="card">
+    <div class="card-hdr"><div><div class="card-title">Budget Utilization by Program Area</div><div class="card-sub">Spend vs. allocated budget</div></div></div>
+    <div class="prog-row" id="budgetBars"></div>
+  </div>
+</div>
+
+<!-- ══ SCORECARD ══ -->
+<p class="section-lbl">Strategic Plan Progress — 2023–26 <span class="src-v">✓ Strategic Business Plan 2023–26</span> <span class="src-m">~ Progress % illustrative</span></p>
+<div class="card" style="margin-bottom:0">
+  <div class="card-hdr"><div><div class="card-title">Priority Goals Scorecard</div><div class="card-sub">Four strategic priorities from the 2023–26 Business Plan</div></div></div>
+  <table class="data-table">
+    <thead><tr><th>Priority</th><th>Key Initiative</th><th>Status</th><th>Progress</th><th>Target</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>1 · Programs</strong></td>
+        <td>Expand BNG to 200+ schools</td>
+        <td><span class="score-status s-on">On Track</span></td>
+        <td><div class="bar-cell"><div class="mini-bar"><div class="mini-bar-fill" style="width:72%"></div></div><span class="pct-lbl">72%</span></div></td>
+        <td style="font-size:11px;color:var(--mid)">Mar 2026</td>
+      </tr>
+      <tr>
+        <td><strong>2 · Partnerships</strong></td>
+        <td>Formalize City of Toronto multi-year funding</td>
+        <td><span class="score-status s-in">In Progress</span></td>
+        <td><div class="bar-cell"><div class="mini-bar"><div class="mini-bar-fill blue" style="width:55%"></div></div><span class="pct-lbl">55%</span></div></td>
+        <td style="font-size:11px;color:var(--mid)">Dec 2025</td>
+      </tr>
+      <tr>
+        <td><strong>3 · Data &amp; Digital</strong></td>
+        <td>Migrate Emergency Fund: Excel → CDS system</td>
+        <td><span class="score-status s-on">On Track</span></td>
+        <td><div class="bar-cell"><div class="mini-bar"><div class="mini-bar-fill" style="width:85%"></div></div><span class="pct-lbl">85%</span></div></td>
+        <td style="font-size:11px;color:var(--mid)">Jun 2025</td>
+      </tr>
+      <tr>
+        <td><strong>3 · Data &amp; Digital</strong></td>
+        <td>Digitalize BNG metadata &amp; build analytics layer</td>
+        <td><span class="score-status s-in">In Progress</span></td>
+        <td><div class="bar-cell"><div class="mini-bar"><div class="mini-bar-fill blue" style="width:40%"></div></div><span class="pct-lbl">40%</span></div></td>
+        <td style="font-size:11px;color:var(--mid)">Sep 2025</td>
+      </tr>
+      <tr>
+        <td><strong>4 · Sustainability</strong></td>
+        <td>Reduce government grant dependency below 78%</td>
+        <td><span class="score-status s-at">At Risk</span></td>
+        <td><div class="bar-cell"><div class="mini-bar"><div class="mini-bar-fill" style="width:30%;background:var(--red)"></div></div><span class="pct-lbl">30%</span></div></td>
+        <td style="font-size:11px;color:var(--mid)">Mar 2026</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="dash-footer">
+  <span class="src-v" style="margin-left:0">✓ Verified</span> 36.7M meals · 846 programs · revenue split (82/15/3%) · expense split (94/4/2%) · strategic priorities
+  &nbsp;—&nbsp; sourced from <strong>TFSS Annual Report 2023–24</strong> &amp; <strong>Strategic Business Plan 2023–26</strong>
+  <br style="margin:4px 0">
+  <span class="src-m" style="margin-left:0">~ Illustrative</span> all prior-year figures · monthly breakdowns · school-level data · donor detail · expense sub-items · food procurement · screening counts
+  &nbsp;·&nbsp; All figures CAD · Built for portfolio demonstration
+</div>
+
+</main>
+
+<script>
+/* ═══════════════════════════════════════════════
+   DATA MODEL
+═══════════════════════════════════════════════ */
+
+const YEARS = ['2019-20','2020-21','2021-22','2022-23','2023-24'];
+let activeYear = '2023-24';
+
+const D = {
+  kpi: {
+    '2019-20': { meals:'31.2M', prog:'780', stu:'198K', ef:'2,610', mealsRaw:31.2, progRaw:780, stuRaw:198, efRaw:2610 },
+    '2020-21': { meals:'18.4M', prog:'340', stu:'119K', ef:'4,820', mealsRaw:18.4, progRaw:340, stuRaw:119, efRaw:4820, covid:true },
+    '2021-22': { meals:'33.8M', prog:'820', stu:'213K', ef:'2,940', mealsRaw:33.8, progRaw:820, stuRaw:213, efRaw:2940 },
+    '2022-23': { meals:'34.9M', prog:'821', stu:'214K', ef:'3,080', mealsRaw:34.9, progRaw:821, stuRaw:214, efRaw:3080 },
+    '2023-24': { meals:'36.7M', prog:'846', stu:'225K', ef:'3,210', mealsRaw:36.7, progRaw:846, stuRaw:225, efRaw:3210 },
+  },
+
+  meals_monthly: {
+    /* Sep Oct  Nov  Dec  Jan  Feb  Mar  Apr  May  Jun  Jul  Aug */
+    /* Jul & Aug = 0 (summer break). 2019-20 shows COVID dip from Mar onwards. */
+    '2019-20': [3.4,3.8,4.0,3.7,3.9,3.8,2.1,1.8,2.0,2.7,0,0],
+    '2020-21': [2.1,2.5,1.2,0.6,0.5,1.1,2.1,2.5,2.9,2.8,0,0],
+    '2021-22': [2.8,3.4,3.6,3.2,3.5,3.3,3.7,3.6,3.5,3.2,0,0],
+    '2022-23': [2.9,3.5,3.7,3.3,3.6,3.4,3.8,3.7,3.6,3.4,0,0],
+    '2023-24': [3.1,3.7,3.9,3.5,3.8,3.6,4.0,3.9,3.8,3.4,0,0],
+  },
+
+  cost_per_meal: { '2019-20':2.38, '2020-21':3.12, '2021-22':2.31, '2022-23':2.24, '2023-24':2.14 },
+
+  schools: [
+    { name:'Thorncliffe Park PS',    type:'Student Nutrition', data:{ '2019-20':82100,'2020-21':41200,'2021-22':88400,'2022-23':94200,'2023-24':98400 } },
+    { name:'Crescent Town ES',       type:'Student Nutrition', data:{ '2019-20':74300,'2020-21':37100,'2021-22':79100,'2022-23':84500,'2023-24':87200 } },
+    { name:'Flemington PS',          type:'BNG',               data:{ '2019-20':70200,'2020-21':34100,'2021-22':75800,'2022-23':80200,'2023-24':83100 } },
+    { name:'Westview Centennial SS', type:'Student Nutrition', data:{ '2019-20':67800,'2020-21':33200,'2021-22':72100,'2022-23':76800,'2023-24':79500 } },
+    { name:'C.W. Jefferys CI',       type:'BNG',               data:{ '2019-20':63400,'2020-21':30900,'2021-22':68200,'2022-23':72100,'2023-24':74800 } },
+    { name:'Silverthorn CS',         type:'Healthy Schools',   data:{ '2019-20':58600,'2020-21':28400,'2021-22':62800,'2022-23':66200,'2023-24':68300 } },
+    { name:'Amesbury MS',            type:'Student Nutrition', data:{ '2019-20':52100,'2020-21':25600,'2021-22':56200,'2022-23':59400,'2023-24':61200 } },
+    { name:'Brookside PS',           type:'BNG',               data:{ '2019-20':48900,'2020-21':24000,'2021-22':52400,'2022-23':55800,'2023-24':57600 } },
+    { name:'Thistletown CI',         type:'Student Nutrition', data:{ '2019-20':45200,'2020-21':22100,'2021-22':48600,'2022-23':51900,'2023-24':53800 } },
+    { name:'George Harvey CI',       type:'Healthy Schools',   data:{ '2019-20':42800,'2020-21':20900,'2021-22':46100,'2022-23':49200,'2023-24':51000 } },
+  ],
+
+  prog_types: {
+    '2019-20': [54,24,13,6,3],
+    '2020-21': [48,26,12,10,4],
+    '2021-22': [55,23,12,7,3],
+    '2022-23': [57,22,12,6,3],
+    '2023-24': [58,22,12,5,3],
+  },
+  prog_labels: ['Student Nutrition','Bridging Nutrition Gap','Healthy Schools','Emergency Fund','Other / Pilot'],
+
+  ef_monthly: {
+    /* Sep  Oct  Nov  Dec  Jan  Feb  Mar  Apr  May  Jun  Jul  Aug */
+    /* Jan spikes post-holidays; Sep spikes back-to-school; summer dips */
+    '2019-20': [248,212,228,194,262,238,255,244,268,286,148,126],
+    '2020-21': [390,418,520,648,720,680,598,510,448,410,220,188],
+    '2021-22': [268,238,252,210,298,268,280,265,292,312,162,140],
+    '2022-23': [284,252,268,222,315,282,296,278,308,328,172,150],
+    '2023-24': [310,268,285,238,342,302,316,295,328,350,184,162],
+  },
+
+  revenue: {
+    '2019-20': { total:72.1, items:[
+      { label:'Government Grants', pct:80, total:57.7, color:'#4CB549', detail:[
+        { name:'City of Toronto – SNP', amt:24.8, tag:'' },
+        { name:'Province of Ontario – SNP', amt:17.2, tag:'' },
+        { name:'TDSB Partnership Grant', amt:7.4, tag:'' },
+        { name:'Federal Community Services', amt:4.6, tag:'' },
+        { name:'Ontario Trillium Foundation', amt:2.2, tag:'' },
+        { name:'United Way Greater Toronto', amt:1.5, tag:'' },
+      ]},
+      { label:'Donations & Fundraising', pct:17, total:12.3, color:'#0D95C9', detail:[
+        { name:'Anonymous Major Gift', amt:2.0, tag:'dtag-gift' },
+        { name:'RBC Foundation', amt:1.3, tag:'dtag-corp' },
+        { name:'TD Bank Group', amt:1.1, tag:'dtag-corp' },
+        { name:'Scotiabank Community Fund', amt:0.8, tag:'dtag-corp' },
+        { name:'George Weston Ltd.', amt:0.7, tag:'dtag-corp' },
+        { name:'Loblaws Community Fund', amt:0.6, tag:'dtag-corp' },
+        { name:'BMO Financial Group', amt:0.5, tag:'dtag-corp' },
+        { name:'Bell Canada', amt:0.4, tag:'dtag-corp' },
+        { name:'Individual Donors (<$5K)', amt:4.9, tag:'dtag-ind' },
+      ]},
+      { label:'Investment Income', pct:3, total:2.1, color:'#1aacaa', detail:[
+        { name:'Fixed Income Portfolio', amt:1.3 },
+        { name:'Endowment Fund Returns', amt:0.5 },
+        { name:'Short-term Instruments', amt:0.3 },
+      ]},
+    ]},
+    '2020-21': { total:68.4, items:[
+      { label:'Government Grants', pct:85, total:58.1, color:'#4CB549', detail:[
+        { name:'City of Toronto – SNP', amt:25.4, tag:'' },
+        { name:'Province of Ontario – SNP', amt:17.8, tag:'' },
+        { name:'Federal COVID Emergency Fund', amt:8.2, tag:'' },
+        { name:'TDSB Partnership Grant', amt:3.6, tag:'' },
+        { name:'Ontario Trillium Foundation', amt:2.1, tag:'' },
+        { name:'United Way Greater Toronto', amt:1.0, tag:'' },
+      ]},
+      { label:'Donations & Fundraising', pct:12, total:8.2, color:'#0D95C9', detail:[
+        { name:'Anonymous Major Gift', amt:1.4, tag:'dtag-gift' },
+        { name:'RBC Foundation', amt:1.1, tag:'dtag-corp' },
+        { name:'TD Bank Group', amt:0.9, tag:'dtag-corp' },
+        { name:'Scotiabank Community Fund', amt:0.7, tag:'dtag-corp' },
+        { name:'Individual Donors (<$5K)', amt:4.1, tag:'dtag-ind' },
+      ]},
+      { label:'Investment Income', pct:3, total:2.1, color:'#1aacaa', detail:[
+        { name:'Fixed Income Portfolio', amt:1.3 },
+        { name:'Endowment Fund Returns', amt:0.5 },
+        { name:'Short-term Instruments', amt:0.3 },
+      ]},
+    ]},
+    '2021-22': { total:73.8, items:[
+      { label:'Government Grants', pct:81, total:59.8, color:'#4CB549', detail:[
+        { name:'City of Toronto – SNP', amt:25.6, tag:'' },
+        { name:'Province of Ontario – SNP', amt:17.6, tag:'' },
+        { name:'TDSB Partnership Grant', amt:7.8, tag:'' },
+        { name:'Federal Community Services', amt:4.8, tag:'' },
+        { name:'Ontario Trillium Foundation', amt:2.3, tag:'' },
+        { name:'United Way Greater Toronto', amt:1.7, tag:'' },
+      ]},
+      { label:'Donations & Fundraising', pct:16, total:11.8, color:'#0D95C9', detail:[
+        { name:'Anonymous Major Gift', amt:1.8, tag:'dtag-gift' },
+        { name:'RBC Foundation', amt:1.2, tag:'dtag-corp' },
+        { name:'TD Bank Group', amt:1.0, tag:'dtag-corp' },
+        { name:'Scotiabank Community Fund', amt:0.8, tag:'dtag-corp' },
+        { name:'George Weston Ltd.', amt:0.7, tag:'dtag-corp' },
+        { name:'Loblaws Community Fund', amt:0.5, tag:'dtag-corp' },
+        { name:'Individual Donors (<$5K)', amt:5.8, tag:'dtag-ind' },
+      ]},
+      { label:'Investment Income', pct:3, total:2.2, color:'#1aacaa', detail:[
+        { name:'Fixed Income Portfolio', amt:1.3 },
+        { name:'Endowment Fund Returns', amt:0.6 },
+        { name:'Short-term Instruments', amt:0.3 },
+      ]},
+    ]},
+    '2022-23': { total:76.2, items:[
+      { label:'Government Grants', pct:82, total:62.5, color:'#4CB549', detail:[
+        { name:'City of Toronto – SNP', amt:27.1, tag:'' },
+        { name:'Province of Ontario – SNP', amt:18.2, tag:'' },
+        { name:'TDSB Partnership Grant', amt:8.0, tag:'' },
+        { name:'Federal Community Services', amt:5.0, tag:'' },
+        { name:'Ontario Trillium Foundation', amt:2.4, tag:'' },
+        { name:'United Way Greater Toronto', amt:1.8, tag:'' },
+      ]},
+      { label:'Donations & Fundraising', pct:15, total:11.4, color:'#0D95C9', detail:[
+        { name:'Anonymous Major Gift', amt:1.9, tag:'dtag-gift' },
+        { name:'RBC Foundation', amt:1.3, tag:'dtag-corp' },
+        { name:'TD Bank Group', amt:1.1, tag:'dtag-corp' },
+        { name:'Scotiabank Community Fund', amt:0.9, tag:'dtag-corp' },
+        { name:'George Weston Ltd.', amt:0.8, tag:'dtag-corp' },
+        { name:'Loblaws Community Fund', amt:0.6, tag:'dtag-corp' },
+        { name:'BMO Financial Group', amt:0.4, tag:'dtag-corp' },
+        { name:'Individual Donors (<$5K)', amt:4.4, tag:'dtag-ind' },
+      ]},
+      { label:'Investment Income', pct:3, total:2.3, color:'#1aacaa', detail:[
+        { name:'Fixed Income Portfolio', amt:1.4 },
+        { name:'Endowment Fund Returns', amt:0.6 },
+        { name:'Short-term Instruments', amt:0.3 },
+      ]},
+    ]},
+    '2023-24': { total:78.4, items:[
+      { label:'Government Grants', pct:82, total:64.3, color:'#4CB549', detail:[
+        { name:'City of Toronto – SNP', amt:28.4, tag:'' },
+        { name:'Province of Ontario – SNP', amt:18.6, tag:'' },
+        { name:'TDSB Partnership Grant', amt:8.2, tag:'' },
+        { name:'Federal Community Services', amt:5.1, tag:'' },
+        { name:'Ontario Trillium Foundation', amt:2.4, tag:'' },
+        { name:'United Way Greater Toronto', amt:1.6, tag:'' },
+      ]},
+      { label:'Donations & Fundraising', pct:15, total:11.8, color:'#0D95C9', detail:[
+        { name:'Anonymous Major Gift', amt:2.1, tag:'dtag-gift' },
+        { name:'RBC Foundation', amt:1.4, tag:'dtag-corp' },
+        { name:'TD Bank Group', amt:1.2, tag:'dtag-corp' },
+        { name:'Scotiabank Community Fund', amt:0.9, tag:'dtag-corp' },
+        { name:'George Weston Ltd.', amt:0.8, tag:'dtag-corp' },
+        { name:'Anonymous Individual', amt:0.7, tag:'dtag-gift' },
+        { name:'Loblaws Community Fund', amt:0.6, tag:'dtag-corp' },
+        { name:'BMO Financial Group', amt:0.5, tag:'dtag-corp' },
+        { name:'Bell Canada', amt:0.4, tag:'dtag-corp' },
+        { name:'Individual Donors (<$5K)', amt:3.2, tag:'dtag-ind' },
+      ]},
+      { label:'Investment Income', pct:3, total:2.3, color:'#1aacaa', detail:[
+        { name:'Fixed Income Portfolio', amt:1.4 },
+        { name:'Endowment Fund Returns', amt:0.6 },
+        { name:'Short-term Instruments', amt:0.3 },
+      ]},
+    ]},
+  },
+
+  expenses: {
+    '2019-20': { total:70.8, cats:[
+      { label:'Program Delivery', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3"/><path d="M21 15v7"/></svg>', pct:93, total:65.8, color:'g', subs:[
+        { label:'Food & Consumables', pct:52, total:34.2, color:'g' },
+        { label:'Staff Wages (Program)', pct:27, total:17.8, color:'g' },
+        { label:'Vehicle & Delivery', pct:10, total:6.6, color:'teal',
+          items:[{n:'Driver Wages',a:3.4},{n:'Van Fuel',a:1.1},{n:'Vehicle Maintenance',a:0.8},{n:'Fleet Insurance',a:0.8},{n:'Refrigeration Ops',a:0.5}] },
+        { label:'Kitchen Equipment', pct:5, total:3.3, color:'g' },
+        { label:'School Support Grants', pct:6, total:3.9, color:'g' },
+      ]},
+      { label:'Fundraising', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2"/><path d="M20 5v14"/><path d="M20 5 7 9H4a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h3l13 4V5Z"/></svg>', pct:4, total:2.8, color:'orange', subs:[
+        { label:'Events & Galas', pct:42, total:1.2 },
+        { label:'Digital & Direct Marketing', pct:29, total:0.8 },
+        { label:'Staff (Fundraising)', pct:21, total:0.6 },
+        { label:'Printing & Design', pct:8, total:0.2 },
+      ]},
+      { label:'Administration', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--mid)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>', pct:3, total:2.2, color:'mid', subs:[
+        { label:'Office & IT', pct:38, total:0.8 },
+        { label:'HR & Payroll', pct:27, total:0.6 },
+        { label:'Finance & Compliance', pct:23, total:0.5 },
+        { label:'Executive & Board', pct:12, total:0.3 },
+      ]},
+    ]},
+    '2020-21': { total:67.2, cats:[
+      { label:'Program Delivery', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3"/><path d="M21 15v7"/></svg>', pct:92, total:61.8, color:'g', subs:[
+        { label:'Food & Consumables', pct:50, total:30.9, color:'g' },
+        { label:'Staff Wages (Program)', pct:28, total:17.3, color:'g' },
+        { label:'Vehicle & Delivery', pct:11, total:6.8, color:'teal',
+          items:[{n:'Driver Wages',a:3.5},{n:'Van Fuel',a:1.1},{n:'Vehicle Maintenance',a:0.9},{n:'Fleet Insurance',a:0.8},{n:'Refrigeration Ops',a:0.5}] },
+        { label:'Kitchen Equipment', pct:5, total:3.1, color:'g' },
+        { label:'School Support Grants', pct:6, total:3.7, color:'g' },
+      ]},
+      { label:'Fundraising', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2"/><path d="M20 5v14"/><path d="M20 5 7 9H4a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h3l13 4V5Z"/></svg>', pct:5, total:3.4, color:'orange', subs:[
+        { label:'Events & Galas', pct:35, total:1.2 },
+        { label:'Digital & Direct Marketing', pct:35, total:1.2 },
+        { label:'Staff (Fundraising)', pct:21, total:0.7 },
+        { label:'Printing & Design', pct:9, total:0.3 },
+      ]},
+      { label:'Administration', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--mid)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>', pct:3, total:2.0, color:'mid', subs:[
+        { label:'Office & IT', pct:40, total:0.8 },
+        { label:'HR & Payroll', pct:25, total:0.5 },
+        { label:'Finance & Compliance', pct:25, total:0.5 },
+        { label:'Executive & Board', pct:10, total:0.2 },
+      ]},
+    ]},
+    '2021-22': { total:72.4, cats:[
+      { label:'Program Delivery', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3"/><path d="M21 15v7"/></svg>', pct:93, total:67.3, color:'g', subs:[
+        { label:'Food & Consumables', pct:51, total:34.3, color:'g' },
+        { label:'Staff Wages (Program)', pct:26, total:17.5, color:'g' },
+        { label:'Vehicle & Delivery', pct:11, total:7.4, color:'teal',
+          items:[{n:'Driver Wages',a:3.8},{n:'Van Fuel',a:1.2},{n:'Vehicle Maintenance',a:1.0},{n:'Fleet Insurance',a:0.9},{n:'Refrigeration Ops',a:0.5}] },
+        { label:'Kitchen Equipment', pct:5, total:3.4, color:'g' },
+        { label:'School Support Grants', pct:7, total:4.7, color:'g' },
+      ]},
+      { label:'Fundraising', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2"/><path d="M20 5v14"/><path d="M20 5 7 9H4a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h3l13 4V5Z"/></svg>', pct:4, total:2.9, color:'orange', subs:[
+        { label:'Events & Galas', pct:41, total:1.2 },
+        { label:'Digital & Direct Marketing', pct:28, total:0.8 },
+        { label:'Staff (Fundraising)', pct:21, total:0.6 },
+        { label:'Printing & Design', pct:10, total:0.3 },
+      ]},
+      { label:'Administration', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--mid)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>', pct:3, total:2.2, color:'mid', subs:[
+        { label:'Office & IT', pct:36, total:0.8 },
+        { label:'HR & Payroll', pct:27, total:0.6 },
+        { label:'Finance & Compliance', pct:27, total:0.6 },
+        { label:'Executive & Board', pct:10, total:0.2 },
+      ]},
+    ]},
+    '2022-23': { total:75.1, cats:[
+      { label:'Program Delivery', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3"/><path d="M21 15v7"/></svg>', pct:94, total:70.6, color:'g', subs:[
+        { label:'Food & Consumables', pct:52, total:36.7, color:'g' },
+        { label:'Staff Wages (Program)', pct:26, total:18.4, color:'g' },
+        { label:'Vehicle & Delivery', pct:10, total:7.1, color:'teal',
+          items:[{n:'Driver Wages',a:3.7},{n:'Van Fuel',a:1.1},{n:'Vehicle Maintenance',a:0.9},{n:'Fleet Insurance',a:0.9},{n:'Refrigeration Ops',a:0.5}] },
+        { label:'Kitchen Equipment', pct:5, total:3.5, color:'g' },
+        { label:'School Support Grants', pct:7, total:4.9, color:'g' },
+      ]},
+      { label:'Fundraising', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2"/><path d="M20 5v14"/><path d="M20 5 7 9H4a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h3l13 4V5Z"/></svg>', pct:4, total:3.0, color:'orange', subs:[
+        { label:'Events & Galas', pct:40, total:1.2 },
+        { label:'Digital & Direct Marketing', pct:27, total:0.8 },
+        { label:'Staff (Fundraising)', pct:23, total:0.7 },
+        { label:'Printing & Design', pct:10, total:0.3 },
+      ]},
+      { label:'Administration', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--mid)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>', pct:2, total:1.5, color:'mid', subs:[
+        { label:'Office & IT', pct:33, total:0.5 },
+        { label:'HR & Payroll', pct:27, total:0.4 },
+        { label:'Finance & Compliance', pct:27, total:0.4 },
+        { label:'Executive & Board', pct:13, total:0.2 },
+      ]},
+    ]},
+    '2023-24': { total:76.8, cats:[
+      { label:'Program Delivery', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3"/><path d="M21 15v7"/></svg>', pct:94, total:72.2, color:'g', subs:[
+        { label:'Food & Consumables', pct:53, total:38.4, color:'g' },
+        { label:'Staff Wages (Program)', pct:26, total:18.8, color:'g' },
+        { label:'Vehicle & Delivery', pct:10, total:7.2, color:'teal',
+          items:[{n:'Driver Wages',a:3.8},{n:'Van Fuel',a:1.1},{n:'Vehicle Maintenance',a:0.9},{n:'Fleet Insurance',a:0.8},{n:'Refrigeration Ops',a:0.6}] },
+        { label:'Kitchen Equipment', pct:5, total:3.6, color:'g' },
+        { label:'School Support Grants', pct:6, total:4.4, color:'g' },
+      ]},
+      { label:'Fundraising', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2"/><path d="M20 5v14"/><path d="M20 5 7 9H4a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h3l13 4V5Z"/></svg>', pct:4, total:3.1, color:'orange', subs:[
+        { label:'Events & Galas', pct:39, total:1.2 },
+        { label:'Digital & Direct Marketing', pct:26, total:0.8 },
+        { label:'Staff (Fundraising)', pct:23, total:0.7 },
+        { label:'Printing & Design', pct:12, total:0.4 },
+      ]},
+      { label:'Administration', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--mid)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>', pct:2, total:1.5, color:'mid', subs:[
+        { label:'Office & IT', pct:33, total:0.5 },
+        { label:'HR & Payroll', pct:27, total:0.4 },
+        { label:'Finance & Compliance', pct:27, total:0.4 },
+        { label:'Executive & Board', pct:13, total:0.2 },
+      ]},
+    ]},
+  },
+
+  food: {
+    '2019-20': { total:34.2, cats:[
+      { name:'Fresh Produce', color:'#4CB549', spend:9.9, pct:29, items:[
+        { item:'Apples',          qty:'2.1M units',    unit:'$0.75/unit', total:1.6 },
+        { item:'Bananas',         qty:'2.8M units',    unit:'$0.44/unit', total:1.2 },
+        { item:'Baby Carrots',    qty:'160,000 kg',    unit:'$1.80/kg',   total:0.9 },
+        { item:'Oranges',         qty:'1.6M units',    unit:'$0.82/unit', total:1.3 },
+        { item:'Broccoli',        qty:'84,000 kg',     unit:'$2.10/kg',   total:0.9 },
+        { item:'Spinach / Greens',qty:'54,000 kg',     unit:'$3.50/kg',   total:1.0 },
+        { item:'Tomatoes',        qty:'68,000 kg',     unit:'$2.60/kg',   total:0.8 },
+        { item:'Potatoes',        qty:'108,000 kg',    unit:'$1.30/kg',   total:0.6 },
+        { item:'Other Produce',   qty:'various',       unit:'—',          total:1.6 },
+      ]},
+      { name:'Grains & Bread', color:'#f5a623', spend:7.5, pct:22, items:[
+        { item:'Whole Grain Bread',   qty:'730,000 loaves', unit:'$2.90/loaf', total:2.1 },
+        { item:'Brown Rice',          qty:'84,000 kg',      unit:'$2.90/kg',   total:1.2 },
+        { item:'Rolled Oats',         qty:'60,000 kg',      unit:'$2.30/kg',   total:0.8 },
+        { item:'Whole Wheat Pasta',   qty:'46,000 kg',      unit:'$2.80/kg',   total:0.7 },
+        { item:'Granola Bars',        qty:'3.7M bars',      unit:'$0.42/bar',  total:1.6 },
+        { item:'Crackers & Wraps',    qty:'various',        unit:'—',          total:1.1 },
+      ]},
+      { name:'Dairy & Protein', color:'#0D95C9', spend:8.9, pct:26, items:[
+        { item:'2% Milk (cartons)',  qty:'7.5M cartons',  unit:'$0.38/unit', total:2.8 },
+        { item:'Eggs (dozen)',       qty:'248,000 dozen', unit:'$4.80/doz',  total:1.2 },
+        { item:'Cheese (blocks)',    qty:'37,000 kg',     unit:'$11.50/kg',  total:0.8 },
+        { item:'Peanut Butter',      qty:'34,000 kg',     unit:'$5.20/kg',   total:0.9 },
+        { item:'Yogurt (individual)',qty:'1.8M units',    unit:'$1.05/unit', total:1.9 },
+        { item:'Hummus cups',        qty:'1.1M cups',     unit:'$1.20/unit', total:1.3 },
+      ]},
+      { name:'Canned & Pantry', color:'#1aacaa', spend:4.8, pct:14, items:[
+        { item:'Canned Beans',        qty:'285,000 cans', unit:'$1.05/can',  total:0.9 },
+        { item:'Canned Tuna/Protein', qty:'160,000 cans', unit:'$2.20/can',  total:0.8 },
+        { item:'Canned Fruit',        qty:'215,000 cans', unit:'$1.40/can',  total:0.7 },
+        { item:'Cooking Oils',        qty:'10,500 L',     unit:'$4.20/L',    total:0.4 },
+        { item:'Condiments & Spreads',qty:'various',      unit:'—',          total:0.5 },
+        { item:'Dried Fruit',         qty:'18,000 kg',    unit:'$8.30/kg',   total:0.5 },
+      ]},
+      { name:'Packaging', color:'#E64339', spend:3.1, pct:9, items:[
+        { item:'Compostable containers',qty:'16M units',  unit:'$0.088/unit',total:1.4 },
+        { item:'Paper bags',           qty:'10M units',   unit:'$0.076/unit',total:0.8 },
+        { item:'Utensils (compost)',    qty:'32M sets',    unit:'$0.022/set', total:0.7 },
+        { item:'Storage containers',   qty:'various',     unit:'—',          total:0.2 },
+      ]},
+    ]},
+    '2020-21': { total:30.9, cats:[
+      { name:'Fresh Produce', color:'#4CB549', spend:9.0, pct:29, items:[
+        { item:'Apples',          qty:'1.9M units',    unit:'$0.78/unit', total:1.5 },
+        { item:'Bananas',         qty:'2.5M units',    unit:'$0.46/unit', total:1.2 },
+        { item:'Baby Carrots',    qty:'145,000 kg',    unit:'$1.85/kg',   total:0.9 },
+        { item:'Oranges',         qty:'1.4M units',    unit:'$0.85/unit', total:1.2 },
+        { item:'Broccoli',        qty:'76,000 kg',     unit:'$2.15/kg',   total:0.8 },
+        { item:'Spinach / Greens',qty:'49,000 kg',     unit:'$3.55/kg',   total:0.8 },
+        { item:'Tomatoes',        qty:'61,000 kg',     unit:'$2.70/kg',   total:0.7 },
+        { item:'Potatoes',        qty:'97,000 kg',     unit:'$1.35/kg',   total:0.5 },
+        { item:'Other Produce',   qty:'various',       unit:'—',          total:1.4 },
+      ]},
+      { name:'Grains & Bread', color:'#f5a623', spend:6.8, pct:22, items:[
+        { item:'Whole Grain Bread',   qty:'660,000 loaves', unit:'$3.10/loaf', total:2.0 },
+        { item:'Brown Rice',          qty:'76,000 kg',      unit:'$3.00/kg',   total:1.1 },
+        { item:'Rolled Oats',         qty:'54,000 kg',      unit:'$2.40/kg',   total:0.7 },
+        { item:'Whole Wheat Pasta',   qty:'41,000 kg',      unit:'$2.90/kg',   total:0.7 },
+        { item:'Granola Bars',        qty:'3.3M bars',      unit:'$0.44/bar',  total:1.5 },
+        { item:'Crackers & Wraps',    qty:'various',        unit:'—',          total:0.8 },
+      ]},
+      { name:'Dairy & Protein', color:'#0D95C9', spend:8.0, pct:26, items:[
+        { item:'2% Milk (cartons)',  qty:'6.8M cartons',  unit:'$0.39/unit', total:2.7 },
+        { item:'Eggs (dozen)',       qty:'224,000 dozen', unit:'$5.20/doz',  total:1.2 },
+        { item:'Cheese (blocks)',    qty:'33,000 kg',     unit:'$11.80/kg',  total:0.8 },
+        { item:'Peanut Butter',      qty:'31,000 kg',     unit:'$5.40/kg',   total:0.8 },
+        { item:'Yogurt (individual)',qty:'1.6M units',    unit:'$1.10/unit', total:1.8 },
+        { item:'Hummus cups',        qty:'0.9M cups',     unit:'$1.25/unit', total:1.1 },
+      ]},
+      { name:'Canned & Pantry', color:'#1aacaa', spend:4.3, pct:14, items:[
+        { item:'Canned Beans',        qty:'258,000 cans', unit:'$1.10/can',  total:0.9 },
+        { item:'Canned Tuna/Protein', qty:'144,000 cans', unit:'$2.30/can',  total:0.8 },
+        { item:'Canned Fruit',        qty:'194,000 cans', unit:'$1.45/can',  total:0.6 },
+        { item:'Cooking Oils',        qty:'9,500 L',      unit:'$4.30/L',    total:0.4 },
+        { item:'Condiments & Spreads',qty:'various',      unit:'—',          total:0.4 },
+        { item:'Dried Fruit',         qty:'16,000 kg',    unit:'$8.50/kg',   total:0.5 },
+      ]},
+      { name:'Packaging', color:'#E64339', spend:2.8, pct:9, items:[
+        { item:'Compostable containers',qty:'14M units',  unit:'$0.090/unit',total:1.3 },
+        { item:'Paper bags',           qty:'9M units',    unit:'$0.078/unit',total:0.7 },
+        { item:'Utensils (compost)',    qty:'29M sets',    unit:'$0.024/set', total:0.7 },
+        { item:'Storage containers',   qty:'various',     unit:'—',          total:0.1 },
+      ]},
+    ]},
+    '2021-22': { total:34.3, cats:[
+      { name:'Fresh Produce', color:'#4CB549', spend:9.9, pct:29, items:[
+        { item:'Apples',          qty:'2.1M units',    unit:'$0.78/unit', total:1.6 },
+        { item:'Bananas',         qty:'2.8M units',    unit:'$0.46/unit', total:1.3 },
+        { item:'Baby Carrots',    qty:'162,000 kg',    unit:'$1.85/kg',   total:0.9 },
+        { item:'Oranges',         qty:'1.6M units',    unit:'$0.85/unit', total:1.4 },
+        { item:'Broccoli',        qty:'86,000 kg',     unit:'$2.15/kg',   total:0.8 },
+        { item:'Spinach / Greens',qty:'55,000 kg',     unit:'$3.55/kg',   total:1.0 },
+        { item:'Tomatoes',        qty:'70,000 kg',     unit:'$2.65/kg',   total:0.8 },
+        { item:'Potatoes',        qty:'110,000 kg',    unit:'$1.35/kg',   total:0.6 },
+        { item:'Other Produce',   qty:'various',       unit:'—',          total:1.5 },
+      ]},
+      { name:'Grains & Bread', color:'#f5a623', spend:7.5, pct:22, items:[
+        { item:'Whole Grain Bread',   qty:'740,000 loaves', unit:'$3.05/loaf', total:2.3 },
+        { item:'Brown Rice',          qty:'86,000 kg',      unit:'$2.95/kg',   total:1.1 },
+        { item:'Rolled Oats',         qty:'62,000 kg',      unit:'$2.35/kg',   total:0.8 },
+        { item:'Whole Wheat Pasta',   qty:'47,000 kg',      unit:'$2.85/kg',   total:0.7 },
+        { item:'Granola Bars',        qty:'3.8M bars',      unit:'$0.43/bar',  total:1.6 },
+        { item:'Crackers & Wraps',    qty:'various',        unit:'—',          total:1.0 },
+      ]},
+      { name:'Dairy & Protein', color:'#0D95C9', spend:8.9, pct:26, items:[
+        { item:'2% Milk (cartons)',  qty:'7.6M cartons',  unit:'$0.40/unit', total:3.0 },
+        { item:'Eggs (dozen)',       qty:'254,000 dozen', unit:'$5.50/doz',  total:1.4 },
+        { item:'Cheese (blocks)',    qty:'38,000 kg',     unit:'$11.80/kg',  total:0.8 },
+        { item:'Peanut Butter',      qty:'35,000 kg',     unit:'$5.50/kg',   total:0.9 },
+        { item:'Yogurt (individual)',qty:'1.9M units',    unit:'$1.10/unit', total:1.5 },
+        { item:'Hummus cups',        qty:'1.0M cups',     unit:'$1.30/unit', total:1.3 },
+      ]},
+      { name:'Canned & Pantry', color:'#1aacaa', spend:4.8, pct:14, items:[
+        { item:'Canned Beans',        qty:'291,000 cans', unit:'$1.10/can',  total:1.0 },
+        { item:'Canned Tuna/Protein', qty:'163,000 cans', unit:'$2.30/can',  total:0.7 },
+        { item:'Canned Fruit',        qty:'218,000 cans', unit:'$1.45/can',  total:0.7 },
+        { item:'Cooking Oils',        qty:'10,800 L',     unit:'$4.30/L',    total:0.5 },
+        { item:'Condiments & Spreads',qty:'various',      unit:'—',          total:0.5 },
+        { item:'Dried Fruit',         qty:'18,500 kg',    unit:'$8.50/kg',   total:0.4 },
+      ]},
+      { name:'Packaging', color:'#E64339', spend:3.2, pct:9, items:[
+        { item:'Compostable containers',qty:'16M units',  unit:'$0.090/unit',total:1.4 },
+        { item:'Paper bags',           qty:'10M units',   unit:'$0.080/unit',total:0.8 },
+        { item:'Utensils (compost)',    qty:'32M sets',    unit:'$0.025/set', total:0.8 },
+        { item:'Storage containers',   qty:'various',     unit:'—',          total:0.2 },
+      ]},
+    ]},
+    '2022-23': { total:36.7, cats:[
+      { name:'Fresh Produce', color:'#4CB549', spend:10.6, pct:29, items:[
+        { item:'Apples',          qty:'2.3M units',    unit:'$0.80/unit', total:1.8 },
+        { item:'Bananas',         qty:'3.0M units',    unit:'$0.47/unit', total:1.4 },
+        { item:'Baby Carrots',    qty:'172,000 kg',    unit:'$1.92/kg',   total:1.1 },
+        { item:'Oranges',         qty:'1.7M units',    unit:'$0.88/unit', total:1.5 },
+        { item:'Broccoli',        qty:'91,000 kg',     unit:'$2.20/kg',   total:0.8 },
+        { item:'Spinach / Greens',qty:'59,000 kg',     unit:'$3.60/kg',   total:1.0 },
+        { item:'Tomatoes',        qty:'74,000 kg',     unit:'$2.75/kg',   total:0.9 },
+        { item:'Potatoes',        qty:'115,000 kg',    unit:'$1.40/kg',   total:0.6 },
+        { item:'Other Produce',   qty:'various',       unit:'—',          total:1.5 },
+      ]},
+      { name:'Grains & Bread', color:'#f5a623', spend:8.1, pct:22, items:[
+        { item:'Whole Grain Bread',   qty:'790,000 loaves', unit:'$3.20/loaf', total:2.5 },
+        { item:'Brown Rice',          qty:'91,000 kg',      unit:'$3.05/kg',   total:1.3 },
+        { item:'Rolled Oats',         qty:'65,000 kg',      unit:'$2.45/kg',   total:0.8 },
+        { item:'Whole Wheat Pasta',   qty:'50,000 kg',      unit:'$2.90/kg',   total:0.8 },
+        { item:'Granola Bars',        qty:'4.0M bars',      unit:'$0.44/bar',  total:1.5 },
+        { item:'Crackers & Wraps',    qty:'various',        unit:'—',          total:1.2 },
+      ]},
+      { name:'Dairy & Protein', color:'#0D95C9', spend:9.5, pct:26, items:[
+        { item:'2% Milk (cartons)',  qty:'8.1M cartons',  unit:'$0.41/unit', total:3.3 },
+        { item:'Eggs (dozen)',       qty:'270,000 dozen', unit:'$6.00/doz',  total:1.6 },
+        { item:'Cheese (blocks)',    qty:'40,000 kg',     unit:'$12.00/kg',  total:0.8 },
+        { item:'Peanut Butter',      qty:'37,000 kg',     unit:'$5.65/kg',   total:1.0 },
+        { item:'Yogurt (individual)',qty:'2.0M units',    unit:'$1.12/unit', total:1.7 },
+        { item:'Hummus cups',        qty:'1.1M cups',     unit:'$1.32/unit', total:1.1 },
+      ]},
+      { name:'Canned & Pantry', color:'#1aacaa', spend:5.1, pct:14, items:[
+        { item:'Canned Beans',        qty:'308,000 cans', unit:'$1.15/can',  total:1.1 },
+        { item:'Canned Tuna/Protein', qty:'173,000 cans', unit:'$2.35/can',  total:1.0 },
+        { item:'Canned Fruit',        qty:'230,000 cans', unit:'$1.48/can',  total:0.9 },
+        { item:'Cooking Oils',        qty:'11,500 L',     unit:'$4.40/L',    total:0.5 },
+        { item:'Condiments & Spreads',qty:'various',      unit:'—',          total:0.4 },
+        { item:'Dried Fruit',         qty:'19,000 kg',    unit:'$8.60/kg',   total:0.4 },
+      ]},
+      { name:'Packaging', color:'#E64339', spend:3.4, pct:9, items:[
+        { item:'Compostable containers',qty:'17M units',  unit:'$0.092/unit',total:1.6 },
+        { item:'Paper bags',           qty:'11M units',   unit:'$0.082/unit',total:0.9 },
+        { item:'Utensils (compost)',    qty:'34M sets',    unit:'$0.026/set', total:0.9 },
+        { item:'Storage containers',   qty:'various',     unit:'—',          total:0.0 },
+      ]},
+    ]},
+    '2023-24': { total:38.4, cats:[
+      { name:'Fresh Produce', color:'#4CB549', spend:11.2, pct:29, items:[
+        { item:'Apples',          qty:'2.4M units',    unit:'$0.82/unit', total:1.8 },
+        { item:'Bananas',         qty:'3.1M units',    unit:'$0.48/unit', total:1.4 },
+        { item:'Baby Carrots',    qty:'180,000 kg',    unit:'$1.95/kg',   total:1.2 },
+        { item:'Oranges',         qty:'1.8M units',    unit:'$0.90/unit', total:1.6 },
+        { item:'Broccoli',        qty:'95,000 kg',     unit:'$2.20/kg',   total:0.9 },
+        { item:'Spinach / Greens',qty:'62,000 kg',     unit:'$3.65/kg',   total:1.1 },
+        { item:'Tomatoes',        qty:'78,000 kg',     unit:'$2.80/kg',   total:0.9 },
+        { item:'Potatoes',        qty:'120,000 kg',    unit:'$1.40/kg',   total:0.7 },
+        { item:'Other Produce',   qty:'various',       unit:'—',          total:1.6 },
+      ]},
+      { name:'Grains & Bread', color:'#f5a623', spend:8.4, pct:22, items:[
+        { item:'Whole Grain Bread',   qty:'820,000 loaves', unit:'$3.40/loaf', total:2.8 },
+        { item:'Brown Rice',          qty:'95,000 kg',      unit:'$3.15/kg',   total:1.4 },
+        { item:'Rolled Oats',         qty:'68,000 kg',      unit:'$2.50/kg',   total:0.9 },
+        { item:'Whole Wheat Pasta',   qty:'52,000 kg',      unit:'$2.95/kg',   total:0.8 },
+        { item:'Granola Bars',        qty:'4.2M bars',      unit:'$0.46/bar',  total:1.4 },
+        { item:'Crackers & Wraps',    qty:'various',        unit:'—',          total:1.1 },
+      ]},
+      { name:'Dairy & Protein', color:'#0D95C9', spend:9.8, pct:26, items:[
+        { item:'2% Milk (cartons)',  qty:'8.4M cartons',  unit:'$0.43/unit', total:3.6 },
+        { item:'Eggs (dozen)',       qty:'280,000 dozen', unit:'$6.40/doz',  total:1.8 },
+        { item:'Cheese (blocks)',    qty:'42,000 kg',     unit:'$12.30/kg',  total:1.4 },
+        { item:'Peanut Butter',      qty:'38,000 kg',     unit:'$5.80/kg',   total:1.1 },
+        { item:'Yogurt (individual)',qty:'2.1M units',    unit:'$1.14/unit', total:1.9 },
+        { item:'Hummus cups',        qty:'1.2M cups',     unit:'$1.34/unit', total:1.3 },
+      ]},
+      { name:'Canned & Pantry', color:'#1aacaa', spend:5.2, pct:14, items:[
+        { item:'Canned Beans',        qty:'320,000 cans', unit:'$1.20/can',  total:1.2 },
+        { item:'Canned Tuna/Protein', qty:'180,000 cans', unit:'$2.45/can',  total:1.0 },
+        { item:'Canned Fruit',        qty:'240,000 cans', unit:'$1.52/can',  total:0.9 },
+        { item:'Cooking Oils',        qty:'12,000 L',     unit:'$4.50/L',    total:0.6 },
+        { item:'Condiments & Spreads',qty:'various',      unit:'—',          total:0.5 },
+        { item:'Dried Fruit',         qty:'20,000 kg',    unit:'$8.80/kg',   total:0.5 },
+      ]},
+      { name:'Packaging', color:'#E64339', spend:3.8, pct:10, items:[
+        { item:'Compostable containers',qty:'18M units',  unit:'$0.095/unit',total:1.7 },
+        { item:'Paper bags',           qty:'12M units',   unit:'$0.085/unit',total:1.0 },
+        { item:'Utensils (compost)',    qty:'36M sets',    unit:'$0.028/set', total:0.8 },
+        { item:'Storage containers',   qty:'various',     unit:'—',          total:0.3 },
+      ]},
+    ]},
+  },
+
+  health: {
+    '2019-20': [{ lbl:'Vision Screenings',val:'13,100',note:'▲ 6% YoY'  },{ lbl:'Hearing Screenings',val:'10,020',note:'▲ 5% YoY'  },{ lbl:'Glasses Distributed',val:'1,860',note:'14% screened'  },{ lbl:'Hearing Referrals',val:'780',note:'8% screened'  }],
+    '2020-21': [{ lbl:'Vision Screenings',val:'4,200', note:'▼ 68% (COVID)'},{ lbl:'Hearing Screenings',val:'3,180', note:'▼ 68% (COVID)'},{ lbl:'Glasses Distributed',val:'590',note:'14% screened'},{ lbl:'Hearing Referrals',val:'250',note:'8% screened'  }],
+    '2021-22': [{ lbl:'Vision Screenings',val:'13,220',note:'▲ 215% YoY'},{ lbl:'Hearing Screenings',val:'10,100',note:'▲ 218% YoY'},{ lbl:'Glasses Distributed',val:'1,880',note:'14% screened'},{ lbl:'Hearing Referrals',val:'790',note:'8% screened'  }],
+    '2022-23': [{ lbl:'Vision Screenings',val:'13,980',note:'▲ 6% YoY'  },{ lbl:'Hearing Screenings',val:'10,900',note:'▲ 8% YoY'  },{ lbl:'Glasses Distributed',val:'2,000',note:'14% screened'},{ lbl:'Hearing Referrals',val:'840',note:'8% screened'  }],
+    '2023-24': [{ lbl:'Vision Screenings',val:'14,820',note:'▲ 6% YoY'  },{ lbl:'Hearing Screenings',val:'11,340',note:'▲ 4% YoY'  },{ lbl:'Glasses Distributed',val:'2,106',note:'14% screened'},{ lbl:'Hearing Referrals',val:'880',note:'8% screened'  }],
+  },
+
+  budget: {
+    '2019-20': [{ lbl:'Student Nutrition',pct:92,color:'var(--green)'},{lbl:'Bridging Nutrition Gap',pct:86,color:'var(--green)'},{lbl:'Healthy Schools',pct:98,color:'var(--blue)'},{lbl:'Emergency Fund',pct:95,color:'var(--green)'},{lbl:'Admin & Fundraising',pct:82,color:'var(--border)'}],
+    '2020-21': [{ lbl:'Student Nutrition',pct:88,color:'var(--green)'},{lbl:'Bridging Nutrition Gap',pct:72,color:'#f5a623'},{lbl:'Healthy Schools',pct:58,color:'var(--red)'},{lbl:'Emergency Fund',pct:110,color:'var(--red)'},{lbl:'Admin & Fundraising',pct:91,color:'var(--border)'}],
+    '2021-22': [{ lbl:'Student Nutrition',pct:93,color:'var(--green)'},{lbl:'Bridging Nutrition Gap',pct:88,color:'var(--green)'},{lbl:'Healthy Schools',pct:100,color:'var(--blue)'},{lbl:'Emergency Fund',pct:96,color:'var(--green)'},{lbl:'Admin & Fundraising',pct:84,color:'var(--border)'}],
+    '2022-23': [{ lbl:'Student Nutrition',pct:93,color:'var(--green)'},{lbl:'Bridging Nutrition Gap',pct:87,color:'var(--green)'},{lbl:'Healthy Schools',pct:101,color:'var(--blue)'},{lbl:'Emergency Fund',pct:96,color:'var(--green)'},{lbl:'Admin & Fundraising',pct:82,color:'var(--border)'}],
+    '2023-24': [{ lbl:'Student Nutrition',pct:94,color:'var(--green)'},{lbl:'Bridging Nutrition Gap',pct:88,color:'var(--green)'},{lbl:'Healthy Schools',pct:102,color:'var(--blue)'},{lbl:'Emergency Fund',pct:97,color:'var(--green)'},{lbl:'Admin & Fundraising',pct:81,color:'var(--border)'}],
+  },
+};
+
+/* ═══════════════════════════════════════════════
+   CHART INSTANCES
+═══════════════════════════════════════════════ */
+let mealsChart, efChart, progTypeChart, revChart, foodCatChart;
+const schoolHistCharts = {};
+let activeFoodTab = 0;
+let activeRevIdx = -1;
+
+const MONTHS = ['Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug'];
+
+Chart.defaults.font.family = '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif';
+Chart.defaults.color = '#5c7078';
+
+function initCharts() {
+  mealsChart = new Chart(document.getElementById('mealsChart'), {
+    type:'bar',
+    data: { labels: MONTHS, datasets:[{ label:'Meals (M)', data:[], backgroundColor:[], borderColor:[], borderWidth:1, borderRadius:5 }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c=>' '+c.parsed.y.toFixed(1)+'M meals' } } }, scales:{ x:{grid:{display:false}}, y:{grid:{color:'#eef0f2'}, ticks:{callback:v=>v+'M'}} } }
+  });
+
+  efChart = new Chart(document.getElementById('efChart'), {
+    type:'line',
+    data: { labels: MONTHS, datasets:[{ label:'Applications', data:[], borderColor:'#E64339', backgroundColor:'#E6433918', fill:true, tension:0.4, pointRadius:3, pointBackgroundColor:'#E64339' }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{grid:{display:false}}, y:{grid:{color:'#eef0f2'}} } }
+  });
+
+  progTypeChart = new Chart(document.getElementById('progTypeChart'), {
+    type:'doughnut',
+    data: { labels: D.prog_labels, datasets:[{ data:[], backgroundColor:['#4CB549','#0D95C9','#1aacaa','#E64339','#f5a623'], borderWidth:2, borderColor:'#fff', hoverOffset:5 }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, cutout:'68%' }
+  });
+
+  revChart = new Chart(document.getElementById('revChart'), {
+    type:'doughnut',
+    data: { labels:[], datasets:[{ data:[], backgroundColor:[], borderWidth:2, borderColor:'#fff', hoverOffset:5 }] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c=>` ${c.parsed}%` } } },
+      cutout:'68%',
+      onClick: (e,els) => { if(els.length) toggleRevDetail(els[0].index); }
+    }
+  });
+
+  foodCatChart = new Chart(document.getElementById('foodCatChart'), {
+    type:'doughnut',
+    data:{ labels:[], datasets:[{ data:[], backgroundColor:[], borderWidth:2, borderColor:'#fff', hoverOffset:5 }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, cutout:'65%' }
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   RENDER FUNCTIONS
+═══════════════════════════════════════════════ */
+
+function renderKPI(yr) {
+  const k = D.kpi[yr];
+  document.getElementById('k-meals').textContent = k.meals;
+  document.getElementById('k-prog').textContent  = k.prog;
+  document.getElementById('k-stu').textContent   = k.stu;
+  document.getElementById('k-ef').textContent    = k.ef;
+
+  const yrs = YEARS;
+  const idx = yrs.indexOf(yr);
+
+  function delta(id, curr, prev, suffix='') {
+    const el = document.getElementById(id);
+    if(idx === 0 || !prev){ el.textContent='—'; el.className='kpi-delta df'; return; }
+    const pct = Math.round((curr-prev)/prev*100);
+    el.innerHTML = pct>=0 ? `▲ ${pct}% vs prior year` : `▼ ${Math.abs(pct)}% vs prior year`;
+    el.className = 'kpi-delta ' + (k.covid ? 'dd' : (pct>=0?'du':'dd'));
+  }
+
+  if(idx>0){
+    const p = D.kpi[yrs[idx-1]];
+    delta('k-meals-d', k.mealsRaw, p.mealsRaw);
+    delta('k-prog-d',  k.progRaw,  p.progRaw);
+    delta('k-stu-d',   k.stuRaw,   p.stuRaw);
+    const efEl = document.getElementById('k-ef-d');
+    efEl.textContent = k.covid ? '⚠ COVID-19: high demand year' : '— 97% fulfillment rate';
+    efEl.className = 'kpi-delta ' + (k.covid ? 'dd' : 'df');
+  } else {
+    ['k-meals-d','k-prog-d','k-stu-d','k-ef-d'].forEach(id=>{
+      const el = document.getElementById(id); el.textContent='Earliest year in range'; el.className='kpi-delta df';
+    });
+  }
+}
+
+function renderMeals(yr) {
+  const data = D.meals_monthly[yr];
+  mealsChart.data.datasets[0].data = data;
+  mealsChart.data.datasets[0].backgroundColor = data.map((_,i)=>i===10||i===11?'#dde3e6':'#4CB549cc');
+  mealsChart.data.datasets[0].borderColor = data.map((_,i)=>i===10||i===11?'#dde3e6':'#4CB549');
+  mealsChart.update();
+  document.getElementById('meals-tag').textContent = yr.replace('-','–');
+}
+
+function renderCostPerMeal(yr) {
+  const cpm = D.cost_per_meal[yr];
+  document.getElementById('cpm-val').textContent = '$'+cpm.toFixed(2);
+  const hist = document.getElementById('cpm-hist');
+  const max = Math.max(...YEARS.map(y=>D.cost_per_meal[y]));
+  hist.innerHTML = YEARS.map(y=>{
+    const v = D.cost_per_meal[y];
+    const w = Math.round(v/max*100);
+    const isActive = y===yr;
+    return `<div class="prog-item">
+      <div class="prog-lbl" ${isActive?'style="color:var(--gd);font-weight:700"':''}><span>${y.replace('-','–')}</span><span>$${v.toFixed(2)}</span></div>
+      <div class="prog-track"><div class="prog-fill" style="width:${w}%;background:${isActive?'var(--green)':'var(--border)'}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderSchools(yr) {
+  const sorted = [...D.schools].sort((a,b)=>b.data[yr]-a.data[yr]);
+  const top10vals = sorted.map(s=>s.data[yr]);
+  const maxVal = top10vals[0];
+  const total10 = top10vals.reduce((a,b)=>a+b,0);
+
+  document.getElementById('schools-title').textContent = `Ranked for FY ${yr.replace('-','–')}`;
+
+  const tbody = document.getElementById('schoolTbody');
+  tbody.innerHTML = '';
+
+  sorted.forEach((s,i)=>{
+    const v = s.data[yr];
+    const sharePct = Math.round(v/total10*100);
+    const barPct   = Math.round(v/maxVal*100);
+    const typeClass = s.type==='Student Nutrition'?'pg':s.type==='BNG'?'pb':s.type==='Healthy Schools'?'pt':'pr';
+
+    const mainRow = document.createElement('tr');
+    mainRow.innerHTML = `
+      <td><span class="rank-badge ${i<3?'top3':''}">${i+1}</span></td>
+      <td style="font-weight:600">${s.name}</td>
+      <td><span class="pill ${typeClass}">${s.type}</span></td>
+      <td><strong>${v.toLocaleString()}</strong></td>
+      <td>
+        <div class="bar-cell">
+          <div class="mini-bar"><div class="mini-bar-fill ${s.type==='BNG'?'blue':''}" style="width:${barPct}%"></div></div>
+          <span class="pct-lbl">${sharePct}%</span>
+        </div>
+      </td>
+      <td><button class="hist-btn" id="hbtn-${i}" onclick="toggleSchoolHist(${i},'${s.name}')">▼ History</button></td>
+    `;
+    tbody.appendChild(mainRow);
+
+    const histRow = document.createElement('tr');
+    histRow.className = 'hist-row';
+    histRow.id = `hrow-${i}`;
+    histRow.innerHTML = `<td></td><td colspan="5" class="hist-cell">
+      <div style="font-size:11px;font-weight:600;color:var(--mid);margin-bottom:6px">${s.name} — 5-Year Meals Trend</div>
+      <div class="hist-chart-wrap"><canvas id="hchart-${i}"></canvas></div>
+    </td>`;
+    tbody.appendChild(histRow);
+
+    // Store school data ref for chart creation
+    mainRow._school = s;
+  });
+
+  // Destroy old school history charts
+  Object.keys(schoolHistCharts).forEach(k=>{ schoolHistCharts[k].destroy(); delete schoolHistCharts[k]; });
+}
+
+function toggleSchoolHist(idx, schoolName) {
+  const btn  = document.getElementById(`hbtn-${idx}`);
+  const row  = document.getElementById(`hrow-${idx}`);
+  const isOpen = row.classList.contains('open');
+
+  // Close all
+  document.querySelectorAll('.hist-row.open').forEach(r=>r.classList.remove('open'));
+  document.querySelectorAll('.hist-btn.open').forEach(b=>{ b.classList.remove('open'); b.textContent='▼ History'; });
+
+  if(!isOpen) {
+    row.classList.add('open');
+    btn.classList.add('open');
+    btn.textContent='▲ History';
+
+    if(!schoolHistCharts[idx]) {
+      const school = D.schools.find(s=>s.name===schoolName);
+      const vals = YEARS.map(y=>school.data[y]);
+      const ctx = document.getElementById(`hchart-${idx}`).getContext('2d');
+      schoolHistCharts[idx] = new Chart(ctx, {
+        type:'line',
+        data:{
+          labels: YEARS.map(y=>y.replace('-','–')),
+          datasets:[{
+            data: vals,
+            borderColor:'#0D95C9', backgroundColor:'#0D95C918', fill:true,
+            tension:0.4, pointRadius:4, pointBackgroundColor:'#0D95C9',
+            pointBorderColor: YEARS.map(y=>D.kpi[y].covid?'#E64339':'#0D95C9'),
+          }]
+        },
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:c=>' '+c.parsed.y.toLocaleString()+' meals' } } },
+          scales:{ x:{grid:{display:false}}, y:{grid:{color:'#eef0f2'}, ticks:{callback:v=>v>=1000?(v/1000).toFixed(0)+'K':v}} }
+        }
+      });
+    }
+  }
+}
+
+function renderProgTypes(yr) {
+  const d = D.prog_types[yr];
+  const total = D.kpi[yr].progRaw;
+  progTypeChart.data.datasets[0].data = d;
+  progTypeChart.update();
+  document.getElementById('prog-ctr-val').textContent = total;
+  document.getElementById('prog-tag').textContent = total+' total';
+  document.getElementById('prog-sub').textContent = `${total} active programs across TDSB schools`;
+
+  const legend = document.getElementById('progLegend');
+  const colors = ['#4CB549','#0D95C9','#1aacaa','#E64339','#f5a623'];
+  legend.innerHTML = D.prog_labels.map((lbl,i)=>`
+    <div class="leg-item">
+      <div class="leg-dot" style="background:${colors[i]}"></div>
+      <div class="leg-lbl">${lbl}</div>
+      <div class="leg-pct">${d[i]}%</div>
+    </div>`).join('');
+}
+
+function renderEF(yr) {
+  efChart.data.datasets[0].data = D.ef_monthly[yr];
+  efChart.update();
+  const total = D.ef_monthly[yr].reduce((a,b)=>a+b,0);
+  document.getElementById('ef-sub').textContent = `${total.toLocaleString()} applications, FY ${yr.replace('-','–')}`;
+  document.getElementById('ef-tag').textContent = D.kpi[yr].covid ? '⚠ COVID surge' : '97% Fulfilled';
+  document.getElementById('ef-tag').className = 'ctag ' + (D.kpi[yr].covid ? 'red' : '');
+}
+
+function renderRevenue(yr) {
+  const rev = D.revenue[yr];
+  revChart.data.labels = rev.items.map(i=>i.label);
+  revChart.data.datasets[0].data = rev.items.map(i=>i.pct);
+  revChart.data.datasets[0].backgroundColor = rev.items.map(i=>i.color);
+  revChart.update();
+
+  const totalStr = rev.total < 100 ? '$'+rev.total.toFixed(1)+'M' : '$'+Math.round(rev.total)+'M';
+  document.getElementById('rev-ctr').textContent = totalStr;
+  document.getElementById('rev-tag').textContent = totalStr;
+  document.getElementById('rev-sub').textContent = `Total: ~${totalStr} · click a source for detail`;
+
+  const legend = document.getElementById('revLegend');
+  legend.innerHTML = rev.items.map((it,i)=>`
+    <div class="leg-item" id="revleg-${i}" onclick="toggleRevDetail(${i})">
+      <div class="leg-dot" style="background:${it.color}"></div>
+      <div class="leg-lbl">${it.label}</div>
+      <div class="leg-pct">${it.pct}%</div>
+      <div class="leg-amt">$${it.total.toFixed(1)}M</div>
+    </div>`).join('');
+
+  // Close any open detail
+  closeRevDetail();
+}
+
+function toggleRevDetail(idx) {
+  const panel = document.getElementById('revDetail');
+  const rev = D.revenue[activeYear];
+
+  if(activeRevIdx === idx) { closeRevDetail(); return; }
+  activeRevIdx = idx;
+
+  document.querySelectorAll('.leg-item').forEach((el,i)=>{
+    el.classList.toggle('active', i===idx);
+  });
+
+  const it = rev.items[idx];
+  document.getElementById('revDetailTitle').textContent = `${it.label} — $${it.total.toFixed(1)}M (${it.pct}%)`;
+
+  const maxAmt = Math.max(...it.detail.map(d=>d.amt));
+  const body = document.getElementById('revDetailBody');
+  const fillClass = it.color==='#0D95C9'?'blue':it.color==='#1aacaa'?'teal':'';
+
+  body.innerHTML = it.detail.map(d=>{
+    const w = Math.round(d.amt/maxAmt*100);
+    const tag = d.tag ? `<span class="donor-tag ${d.tag}">${d.tag==='dtag-corp'?'Corporate':d.tag==='dtag-gift'?'Major Gift':'Individual'}</span>` : '';
+    return `<div class="hbar-row">
+      <div class="hbar-label">${d.name}${tag}</div>
+      <div class="hbar-track"><div class="hbar-fill ${fillClass}" style="width:${w}%"></div></div>
+      <div class="hbar-amt">$${d.amt.toFixed(1)}M</div>
+    </div>`;
+  }).join('');
+
+  panel.classList.add('open');
+}
+
+function closeRevDetail() {
+  activeRevIdx = -1;
+  document.getElementById('revDetail').classList.remove('open');
+  document.querySelectorAll('#revLegend .leg-item').forEach(el=>el.classList.remove('active'));
+}
+
+function renderExpenses(yr) {
+  const exp = D.expenses[yr];
+  const acc = document.getElementById('expAccordion');
+  const pctStr = exp.cats[0].pct+'%';
+  document.getElementById('exp-tag').textContent = `${pctStr} Programs`;
+
+  acc.innerHTML = exp.cats.map((cat,ci)=>{
+    const subColors = { g:'', blue:'blue', teal:'teal', orange:'orange', mid:'' };
+    const maxSub = cat.subs ? Math.max(...cat.subs.map(s=>s.total||0)) : 1;
+    const subsHtml = cat.subs ? cat.subs.map(sub=>{
+      const w = Math.round((sub.total||0)/maxSub*100);
+      const fillCls = sub.color==='teal'?'teal':sub.color==='blue'?'blue':sub.color==='orange'?'orange':'';
+      return `<div class="exp-sub">
+        <div class="exp-sub-name">${sub.label}</div>
+        <div class="exp-sub-bar"><div class="exp-sub-fill ${fillCls}" style="width:${w}%"></div></div>
+        <div class="exp-sub-amt">$${(sub.total||0).toFixed(1)}M</div>
+        <div class="exp-sub-pct">${sub.pct}%</div>
+      </div>`;
+    }).join('') : '';
+
+    return `<div class="exp-cat">
+      <div class="exp-cat-hdr" onclick="toggleExpCat(${ci})">
+        <span class="exp-cat-icon">${cat.icon}</span>
+        <span class="exp-cat-name">${cat.label}</span>
+        <span class="exp-cat-pct">${cat.pct}% of total</span>
+        <span class="exp-cat-amt">$${cat.total.toFixed(1)}M</span>
+        <span class="exp-chevron" id="expchev-${ci}">▼</span>
+      </div>
+      <div class="exp-body" id="expbody-${ci}">
+        <div class="exp-sublist">${subsHtml}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleExpCat(idx) {
+  const body = document.getElementById(`expbody-${idx}`);
+  const hdr  = body.previousElementSibling;
+  const chev = document.getElementById(`expchev-${idx}`);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  hdr.classList.toggle('open', !isOpen);
+  chev.classList.toggle('open', !isOpen);
+}
+
+function renderFood(yr) {
+  const f = D.food[yr];
+  const totalStr = '$'+f.total.toFixed(1)+'M';
+  document.getElementById('food-sub').textContent = `${totalStr} in food purchasing across ${f.cats.length} categories · FY ${yr.replace('-','–')}`;
+  document.getElementById('food-tag').textContent = totalStr+' Food Spend';
+  document.getElementById('food-ctr-val').textContent = totalStr.replace('.0','');
+
+  // Update donut
+  foodCatChart.data.labels = f.cats.map(c=>c.name);
+  foodCatChart.data.datasets[0].data = f.cats.map(c=>c.pct);
+  foodCatChart.data.datasets[0].backgroundColor = f.cats.map(c=>c.color);
+  foodCatChart.update();
+
+  // Tabs
+  const tabs = document.getElementById('foodTabs');
+  tabs.innerHTML = f.cats.map((c,i)=>`
+    <button class="food-tab ${i===activeFoodTab?'active':''}" onclick="setFoodTab(${i})">${c.name} <span style="font-weight:400;opacity:.7">$${c.spend.toFixed(1)}M</span></button>
+  `).join('');
+
+  renderFoodTable(yr);
+}
+
+function setFoodTab(idx) {
+  activeFoodTab = idx;
+  document.querySelectorAll('.food-tab').forEach((t,i)=>t.classList.toggle('active',i===idx));
+  renderFoodTable(activeYear);
+}
+
+function renderFoodTable(yr) {
+  const cat = D.food[yr].cats[activeFoodTab];
+  const maxTotal = Math.max(...cat.items.map(it=>it.total));
+  const tbody = document.getElementById('foodTbody');
+  tbody.innerHTML = cat.items.map(it=>{
+    const w = Math.round(it.total/maxTotal*100);
+    return `<tr>
+      <td style="font-weight:600">${it.item}</td>
+      <td style="color:var(--mid)">${it.qty}</td>
+      <td style="color:var(--mid)">${it.unit}</td>
+      <td><strong>$${it.total.toFixed(1)}M</strong></td>
+      <td>
+        <div class="food-cost-bar">
+          <div class="food-bar-track"><div class="food-bar-fill" style="width:${w}%;background:${cat.color}"></div></div>
+          <span style="font-size:11px;color:var(--mid);margin-left:4px">${Math.round(it.total/cat.spend*100)}%</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderHealth(yr) {
+  const items = D.health[yr];
+  const grid = document.getElementById('screenGrid');
+  grid.innerHTML = items.map(it=>`
+    <div class="screen-stat">
+      <div class="sv">${it.val}</div>
+      <div class="sl">${it.lbl}</div>
+      <div class="sn">${it.note}</div>
+    </div>`).join('');
+  document.getElementById('health-tag').textContent = yr.replace('-','–');
+}
+
+function renderBudget(yr) {
+  const items = D.budget[yr];
+  const bars = document.getElementById('budgetBars');
+  bars.innerHTML = items.map(it=>{
+    const clamp = Math.min(it.pct, 100);
+    const over = it.pct > 100;
+    return `<div class="prog-item">
+      <div class="prog-lbl" ${over?'style="color:var(--red)"':''}><span>${it.lbl}</span><span>${it.pct}%</span></div>
+      <div class="prog-track"><div class="prog-fill" style="width:${clamp}%;background:${over?'var(--red)':it.color}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════
+   YEAR SWITCHER
+═══════════════════════════════════════════════ */
+function switchYear(yr, btn) {
+  activeYear = yr;
+  activeFoodTab = 0; // reset food tab
+
+  document.querySelectorAll('.yr-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('yrBadge').textContent = `Fiscal Year ${yr.replace('-','–')}`;
+
+  const isCovid = D.kpi[yr].covid;
+  document.getElementById('covidBanner').style.display = isCovid ? 'block' : 'none';
+
+  renderKPI(yr);
+  updateKPIBadges(yr);
+  renderMeals(yr);
+  renderCostPerMeal(yr);
+  renderSchools(yr);
+  renderProgTypes(yr);
+  renderEF(yr);
+  renderRevenue(yr);
+  renderExpenses(yr);
+  renderFood(yr);
+  renderHealth(yr);
+  renderBudget(yr);
+}
+
+/* ═══════════════════════════════════════════════
+   PROVENANCE TOGGLE
+═══════════════════════════════════════════════ */
+function toggleProv() {
+  const body = document.getElementById('provBody');
+  const chev = document.getElementById('provChev');
+  const open = body.classList.toggle('open');
+  chev.classList.toggle('open', open);
+}
+
+/* KPI badge: verified only for 2023-24 source data; illustrative for prior years */
+function updateKPIBadges(yr) {
+  const isVerified = yr === '2023-24';
+  ['badge-meals','badge-prog'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.className = isVerified ? 'src-v' : 'src-m';
+    el.textContent = isVerified ? '✓ Annual Report' : '~ Illustrative';
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', () => {
+  initCharts();
+  switchYear('2023-24', document.querySelector('.yr-btn.active'));
+});
+</script>
+</body>
+</html>

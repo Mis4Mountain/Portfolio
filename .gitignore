@@ -1,0 +1,18 @@
+# Vercel
+.vercel/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Obsidian vault files — do not commit
+.obsidian/
+
+# Editor
+.vscode/
+.idea/
+
+# Misc
+*.log
+Thumbs.db
