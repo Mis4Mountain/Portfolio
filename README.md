@@ -1,6 +1,6 @@
 # Student Nutrition Impact Dashboard
 
-**Live demo:** _add your Vercel URL here after deploying_
+**Live demo:** (https://tfss-dashboard.vercel.app/)
 
 A fully interactive, single-page analytics dashboard built to demonstrate data analyst skills in a non-profit / public-sector context. The dashboard visualises program reach, food procurement, financial allocation, and health service outcomes for a school nutrition program — modelled on the publicly available annual reports and strategic plan of the [Toronto Foundation for Student Success (TFSS)](https://www.tfss.ca).
 
