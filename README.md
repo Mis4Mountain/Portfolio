@@ -70,9 +70,9 @@ No build step. No npm. No framework. Opens directly in a browser.
 ## Screenshots
 
 <img width="1917" height="969" alt="Dashboard 1" src="https://github.com/user-attachments/assets/050ac7c5-6db1-48c6-87b5-b22c580d4504" /><img width="1920" height="965" alt="Dashboard 5" src="https://github.com/user-attachments/assets/bfd23104-dde6-4536-8949-ac597ec4d62a" />
-<img width="1914" height="965" alt="Dashboard 2" src="https://github.com/user-attachments/assets/9ca4b3f7-9f2b-4aaa-8e5a-ccc9e80d1e0b" />
 <img width="1284" height="497" alt="Dashboard 3" src="https://github.com/user-attachments/assets/d895732a-dc72-4971-8eee-ad104f87ac23" />
 <img width="1918" height="864" alt="Dashboard 4" src="https://github.com/user-attachments/assets/dac44376-0faa-43f0-8cf4-88f713ec1f6a" />
+<img width="1914" height="965" alt="Dashboard 2" src="https://github.com/user-attachments/assets/9ca4b3f7-9f2b-4aaa-8e5a-ccc9e80d1e0b" />
 <img width="1920" height="965" alt="Dashboard 5" src="https://github.com/user-attachments/assets/bfd23104-dde6-4536-8949-ac597ec4d62a" />
 
 
