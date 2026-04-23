@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>HTS Duty Calculator</title>
+<meta name="description" content="Interactive HTS duty calculator for US apparel imports. Step-by-step code lookup following USITC hierarchy with Section 301, IEEPA, and FTA adjustments."/>
+<style>
+:root {
+  --green:#4CB549; --gd:#3a9438; --gp:#eaf6e9;
+  --blue:#0D95C9;  --bd:#0a7aa6; --bp:#e0f3fb;
+  --red:#E64339;   --rp:#fdecea;
+  --yellow:#f5a623; --yp:#fffbf0;
+  --teal:#1aacaa;
+  --dark:#34454D;  --mid:#5c7078; --border:#dde3e6;
+  --light:#f4f7f9; --white:#fff;
+  --mono:'SF Mono','Fira Code','Cascadia Code',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--light);color:var(--dark);font-size:14px;min-height:100vh}
+
+/* ── Header ──────────────────────────────────────────────────── */
+.site-header{background:var(--dark);color:#fff;padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:200;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.hdr-left{display:flex;align-items:center;gap:14px}
+.logo-mark{width:34px;height:34px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#fff;flex-shrink:0;letter-spacing:-.5px}
+.site-header h1{font-size:16px;font-weight:600}
+.site-header h1 span{color:var(--blue)}
+.hdr-right{display:flex;align-items:center;gap:14px}
+.warn-badge{background:rgba(245,166,35,.18);border:1px solid rgba(245,166,35,.4);border-radius:20px;padding:4px 12px;font-size:11px;color:#f5a623;white-space:nowrap}
+.back-link{color:rgba(255,255,255,.55);font-size:12px;text-decoration:none;display:flex;align-items:center;gap:5px;transition:color .15s}
+.back-link:hover{color:#fff}
+.back-link svg{flex-shrink:0}
+
+/* ── Layout ──────────────────────────────────────────────────── */
+main{max-width:1160px;margin:0 auto;padding:28px 28px 64px;display:grid;grid-template-columns:400px 1fr;gap:24px;align-items:start}
+
+/* ── Card ────────────────────────────────────────────────────── */
+.card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:22px 24px;transition:box-shadow .2s}
+.card:hover{box-shadow:0 4px 18px rgba(52,69,77,.07)}
+.card-title{font-size:13px;font-weight:700;color:var(--dark);margin-bottom:3px}
+.card-sub{font-size:11px;color:var(--mid);margin-bottom:18px}
+
+/* ── Steps ───────────────────────────────────────────────────── */
+.steps{display:flex;flex-direction:column;gap:10px}
+.step{border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color .2s}
+.step.active{border-color:var(--blue)}
+.step.complete{border-color:var(--green)}
+.step.disabled{opacity:.48;pointer-events:none}
+.step-hdr{display:flex;align-items:center;gap:10px;padding:11px 13px;background:var(--light)}
+.step.active .step-hdr{background:var(--bp)}
+.step.complete .step-hdr{background:var(--gp)}
+.step-num{width:22px;height:22px;border-radius:50%;background:var(--border);color:var(--mid);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step.active .step-num{background:var(--blue);color:#fff}
+.step.complete .step-num{background:var(--green);color:#fff}
+.step-lbl{font-size:12px;font-weight:600;color:var(--dark);flex:1}
+.step-val{font-size:11px;color:var(--mid);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.step.complete .step-val{color:var(--gd);font-weight:600}
+.step-body{padding:10px 13px}
+.step select{width:100%;padding:8px 32px 8px 11px;border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--dark);background:var(--white);appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%235c7078' d='M1.41 0L6 4.58 10.59 0 12 1.41l-6 6-6-6z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;cursor:pointer;transition:border-color .15s}
+.step select:hover{border-color:var(--blue)}
+.step select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(13,149,201,.1)}
+.step select:disabled{background-color:var(--light);cursor:not-allowed}
+.reset-btn{width:100%;margin-top:14px;padding:9px;background:none;border:1px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;color:var(--mid);cursor:pointer;transition:all .15s}
+.reset-btn:hover{border-color:var(--red);color:var(--red);background:var(--rp)}
+
+/* ── Results column ──────────────────────────────────────────── */
+.results{display:flex;flex-direction:column;gap:20px}
+
+/* ── HTS code display ────────────────────────────────────────── */
+.code-card{text-align:center;padding:24px 24px 20px}
+.code-eyebrow{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--mid);margin-bottom:10px}
+.code-display{font-family:var(--mono);font-size:34px;font-weight:600;letter-spacing:2px;line-height:1;padding-bottom:14px;transition:color .3s}
+.code-display .k{color:var(--dark)}
+.code-display .u{color:var(--border)}
+.code-display.found .k{color:var(--gd)}
+.code-display.error{color:var(--red)}
+.code-display.error .k{color:var(--red)}
+.progress-dots{display:flex;gap:5px;justify-content:center;margin-top:2px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--border);transition:background .25s}
+.dot.done{background:var(--green)}
+.dot.active{background:var(--blue)}
+
+/* ── Duty breakdown ──────────────────────────────────────────── */
+.duty-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+.duty-row{display:flex;justify-content:space-between;align-items:center;padding:10px 13px;border-radius:8px;border:1px solid var(--border)}
+.duty-row.span2{grid-column:1/-1}
+.duty-row.base{background:var(--bp);border-color:#b5dcf2}
+.duty-row.add{background:var(--rp);border-color:#f2c2be}
+.duty-row.discount{background:var(--gp);border-color:#b2dcaf}
+.duty-row.none{background:var(--light)}
+.duty-row.final{background:var(--dark);border-color:var(--dark);padding:14px 16px}
+.duty-row-lbl{font-size:12px;font-weight:500}
+.duty-row.final .duty-row-lbl{font-size:13px;font-weight:600;color:rgba(255,255,255,.75)}
+.duty-row-val{font-size:14px;font-weight:700}
+.duty-row.none .duty-row-val{color:var(--mid)}
+.duty-row.final .duty-row-val{font-size:24px;color:#fff}
+.duty-row.final.low .duty-row-val{color:#79d977}
+.duty-row.final.high .duty-row-val{color:#ff8a80}
+.duty-placeholder{text-align:center;padding:30px 0;color:var(--mid);font-size:12px;line-height:1.7;border:2px dashed var(--border);border-radius:10px}
+
+/* ── Notes ───────────────────────────────────────────────────── */
+.notes-box{display:none;background:var(--yp);border:1px solid #f0d080;border-radius:8px;padding:11px 14px;font-size:12px;color:#6b4a0a;line-height:1.65;margin-top:14px}
+.notes-box.on{display:block}
+
+/* ── Disclaimer ──────────────────────────────────────────────── */
+.disclaimer{background:rgba(245,166,35,.07);border:1px solid rgba(245,166,35,.22);border-radius:10px;padding:14px 16px;font-size:12px;color:var(--mid);line-height:1.65}
+.disclaimer strong{color:var(--dark)}
+.disclaimer a{color:var(--bd)}
+
+/* ── Footer ──────────────────────────────────────────────────── */
+footer{background:var(--dark);color:rgba(255,255,255,.38);text-align:center;padding:18px;font-size:11px}
+
+/* ── Admin panel ─────────────────────────────────────────────── */
+.admin-btn{background:none;border:none;color:rgba(255,255,255,.45);font-size:12px;cursor:pointer;padding:5px 8px;border-radius:6px;transition:all .15s;white-space:nowrap;line-height:1}
+.admin-btn:hover,.admin-btn.open{background:rgba(255,255,255,.1);color:rgba(255,255,255,.85)}
+.admin-panel{background:#263038;border-bottom:1px solid rgba(255,255,255,.1);padding:20px 28px}
+.admin-inner{max-width:1160px;margin:0 auto}
+.admin-hdr{margin-bottom:16px}
+.admin-title{font-size:13px;font-weight:700;color:#fff;margin-bottom:3px}
+.admin-sub{font-size:11px;color:rgba(255,255,255,.45);line-height:1.5}
+.admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.upload-zone{background:rgba(255,255,255,.06);border:1.5px dashed rgba(255,255,255,.2);border-radius:10px;padding:16px 18px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.upload-zone:hover,.upload-zone.drag{background:rgba(13,149,201,.12);border-color:var(--blue)}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-zone-lbl{font-size:12px;font-weight:700;color:#fff;margin-bottom:2px}
+.upload-zone-sub{font-size:11px;color:rgba(255,255,255,.45);margin-bottom:10px;line-height:1.5}
+.upload-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.5)}
+.upload-status.ok{background:rgba(76,181,73,.2);color:#7bda78}
+.upload-status.err{background:rgba(230,67,57,.2);color:#ff8a80}
+.admin-actions{display:flex;align-items:center;gap:12px}
+.restore-btn{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.6);border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer;transition:all .15s}
+.restore-btn:hover{background:rgba(230,67,57,.18);border-color:rgba(230,67,57,.5);color:#ff8a80}
+.admin-updated{font-size:11px;color:rgba(255,255,255,.3);margin-left:auto}
+/* ── Widget mode ─────────────────────────────────────────────── */
+.wm .site-header,.wm footer,.wm #adminPanel{display:none}
+.wm main{max-width:100%;padding:16px;grid-template-columns:1fr;gap:16px}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media(max-width:860px){main{grid-template-columns:1fr}.code-display{font-size:26px}}
+@media(max-width:600px){.admin-grid{grid-template-columns:1fr}.admin-panel{padding:16px}}
+@media(max-width:540px){.site-header{padding:0 16px}main{padding:16px 16px 48px}.duty-grid{grid-template-columns:1fr}.duty-row.span2{grid-column:1}.hdr-right .warn-badge{display:none}}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="hdr-left">
+    <div class="logo-mark">HTS</div>
+    <h1>Duty <span>Calculator</span></h1>
+  </div>
+  <div class="hdr-right">
+    <span class="warn-badge">⚠ Rates require verification</span>
+    <button class="admin-btn" id="adminBtn" onclick="toggleAdmin()">⚙ Data</button>
+    <a class="back-link" href="/">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      Dashboard
+    </a>
+  </div>
+</header>
+
+<div id="adminPanel" style="display:none">
+  <div class="admin-panel">
+    <div class="admin-inner">
+      <div class="admin-hdr">
+        <div class="admin-title">Data Management</div>
+        <div class="admin-sub">Upload updated CSVs exported from Google Sheets. Parsed data is saved in your browser and persists across sessions.</div>
+      </div>
+      <div class="admin-grid">
+        <div class="upload-zone" id="refZone"
+             ondragover="dragOver(event,'refZone')" ondragleave="dragLeave('refZone')" ondrop="dropFile(event,'ref','refZone')">
+          <input type="file" accept=".csv" onchange="handleUpload('ref',this)">
+          <div class="upload-zone-lbl">📄 Reference Data</div>
+          <div class="upload-zone-sub">HTS Code Finder — ReferenceData.csv<br>Construction · Product · Fiber · HTS code · Duty rate</div>
+          <span class="upload-status" id="refStatus">Built-in</span>
+        </div>
+        <div class="upload-zone" id="countryZone"
+             ondragover="dragOver(event,'countryZone')" ondragleave="dragLeave('countryZone')" ondrop="dropFile(event,'country','countryZone')">
+          <input type="file" accept=".csv" onchange="handleUpload('country',this)">
+          <div class="upload-zone-lbl">🌐 Country Rates</div>
+          <div class="upload-zone-sub">HTS Code Finder — CountryRates.csv<br>Country · Section 301 · IEEPA · FTA discount</div>
+          <span class="upload-status" id="countryStatus">Built-in</span>
+        </div>
+      </div>
+      <div class="admin-actions">
+        <button class="restore-btn" onclick="restoreDefaults()">↺ Restore built-in data</button>
+        <span class="admin-updated" id="adminUpdated"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main>
+  <!-- ── Left: step selector ── -->
+  <div class="card">
+    <div class="card-title">Build Your HTS Code</div>
+    <div class="card-sub">Answer each step to progressively identify the correct 10-digit code</div>
+
+    <div class="steps">
+      <div class="step active" id="step1">
+        <div class="step-hdr">
+          <div class="step-num">1</div>
+          <div class="step-lbl">Construction</div>
+          <div class="step-val" id="v1">—</div>
+        </div>
+        <div class="step-body">
+          <select id="sel1" onchange="handleStep(1)">
+            <option value="">Select construction…</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="step disabled" id="step2">
+        <div class="step-hdr">
+          <div class="step-num">2</div>
+          <div class="step-lbl">Product Type</div>
+          <div class="step-val" id="v2">—</div>
+        </div>
+        <div class="step-body">
+          <select id="sel2" onchange="handleStep(2)" disabled>
+            <option value="">Select product type…</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="step disabled" id="step3">
+        <div class="step-hdr">
+          <div class="step-num">3</div>
+          <div class="step-lbl">Fiber Content</div>
+          <div class="step-val" id="v3">—</div>
+        </div>
+        <div class="step-body">
+          <select id="sel3" onchange="handleStep(3)" disabled>
+            <option value="">Select fiber content…</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="step disabled" id="step4">
+        <div class="step-hdr">
+          <div class="step-num">4</div>
+          <div class="step-lbl">Special Requirement</div>
+          <div class="step-val" id="v4">—</div>
+        </div>
+        <div class="step-body">
+          <select id="sel4" onchange="handleStep(4)" disabled>
+            <option value="">Select special req…</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="step disabled" id="step5">
+        <div class="step-hdr">
+          <div class="step-num">5</div>
+          <div class="step-lbl">Gender / Age Group</div>
+          <div class="step-val" id="v5">—</div>
+        </div>
+        <div class="step-body">
+          <select id="sel5" onchange="handleStep(5)" disabled>
+            <option value="">Select gender…</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="step disabled" id="step6">
+        <div class="step-hdr">
+          <div class="step-num">6</div>
+          <div class="step-lbl">Country of Origin</div>
+          <div class="step-val" id="v6">—</div>
+        </div>
+        <div class="step-body">
+          <select id="sel6" onchange="handleStep(6)" disabled>
+            <option value="">Select country…</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <button class="reset-btn" onclick="resetAll()">↺ Reset All</button>
+  </div>
+
+  <!-- ── Right: results ── -->
+  <div class="results">
+
+    <div class="card code-card">
+      <div class="code-eyebrow">HTS Code</div>
+      <div class="code-display" id="codeDisplay">
+        <span class="u">xxxx.xx.xxxx</span>
+      </div>
+      <div class="progress-dots">
+        <div class="dot" id="dot1"></div>
+        <div class="dot" id="dot2"></div>
+        <div class="dot" id="dot3"></div>
+        <div class="dot" id="dot4"></div>
+        <div class="dot" id="dot5"></div>
+        <div class="dot" id="dot6"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Duty Breakdown</div>
+      <div class="card-sub">Illustrative only — verify with USITC, CBP, and current USTR orders before making sourcing decisions</div>
+      <div id="dutyContent">
+        <div class="duty-placeholder">
+          Complete steps 1–5 to see the base duty rate,<br>then select Country of Origin for the full calculation.
+        </div>
+      </div>
+      <div class="notes-box" id="notesBox"></div>
+    </div>
+
+    <div class="disclaimer">
+      <strong>Rates require independent verification.</strong> HTS base duty rates, Section 301 tariffs, and IEEPA tariff rates are subject to rapid change via executive order. Rates shown are illustrative, derived from publicly available USITC and USTR data, and may not reflect current exclusions, pauses, or FTA eligibility rulings. Always confirm at <a href="https://hts.usitc.gov" target="_blank" rel="noopener">hts.usitc.gov</a> and with CBP before making sourcing or entry decisions.
+    </div>
+
+  </div>
+</main>
+
+<footer>HTS Duty Calculator — illustrative rates only &middot; Not legal or customs advice</footer>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────
+// Columns: [construction, productType, fiberContent, specialReq, gender, htsCode, dutyRate, chapter, heading, subheading]
+const C = {co:0,pt:1,fc:2,sr:3,ge:4,hts:5,dr:6,ch:7,hd:8,sh:9};
+
+const REF_BUILTIN = [
+  // KNITTED — Base Layer / Turtleneck
+  ["KNITTED","Base Layer Top / Henley / Waffle Crew","Chief weight: Wool","Long sleeves","Men's / Boys'","6109.90.1520","5.6%",61,"6109","6109.9"],
+  ["KNITTED","Base Layer Top / Turtleneck","Chief weight: Wool","Long sleeves","Women's / Girls'","6109.90.1540","5.6%",61,"6109","6109.9"],
+  // KNITTED — Bralette
+  ["KNITTED","Bralette / Bra","Any fiber content","None","Women's / Girls'","6212.10.9040","16.9%",62,"6212","6212.1"],
+  // KNITTED — Briefs / Underwear
+  ["KNITTED","Briefs / Bikini / Thong","Chief weight: MMF (any % wool)","None","Women's / Girls'","6108.22.9020","15.6%",61,"6108","6108.22"],
+  ["KNITTED","Briefs / Bikini / Thong","Chief weight: Wool","None","Women's / Girls'","6108.29.9000","13.30%",61,"6108","6108.29"],
+  ["KNITTED","Briefs / Boxer Briefs / Trunks","Chief weight: MMF (any % wool)","None","Men's / Boys'","6107.12.0010","14.9%",61,"6107","6107.12"],
+  ["KNITTED","Briefs / Boxer Briefs / Trunks","Chief weight: Wool","None","Men's / Boys'","6107.19.9000","5.6%",61,"6107","6107.19"],
+  // KNITTED — Dress
+  ["KNITTED","Dress (knit)","Chief weight: Wool","None","Women's / Girls'","6104.41.0010","13.60%",61,"6104","6104.41"],
+  ["KNITTED","Dress (knit)","Chief weight: MMF, has 23%+ wool","None","Women's / Girls'","6104.43.1030","14.9%",61,"6104","6104.43"],
+  ["KNITTED","Dress (knit)","Wool 50%, Articial Fibres 50%","None","Women's / Girls'","6104.44.1000","14.90%",61,"6104","6104.44"],
+  // KNITTED — Jacket / Bomber / Coat
+  ["KNITTED","Jacket / Bomber / Coat","Chief weight: MMF, has 23%+ wool","None","Men's / Boys'","6101.30.1500","38.6¢/kg + 10%",61,"6101","6101.3"],
+  ["KNITTED","Jacket / Bomber / Coat","Chief weight: MMF, <23% wool","None","Men's / Boys'","6101.30.2010","28.2%",61,"6101","6101.3"],
+  ["KNITTED","Jacket / Bomber / Coat","Chief weight: Wool","None","Men's / Boys'","6101.90.0500","61.7¢/kg + 16%",61,"6101","6101.9"],
+  ["KNITTED","Jacket / Bomber / Coat","Chief weight: MMF, has 23%+ wool","None","Women's / Girls'","6102.30.1000","64.4¢/kg + 18.8%",61,"6102","6102.3"],
+  ["KNITTED","Jacket / Bomber / Coat","Chief weight: MMF, <23% wool","None","Women's / Girls'","6102.30.2020","28.6%",61,"6102","6102.3"],
+  ["KNITTED","Jacket / Bomber / Coat","Chief weight: Wool","None","Women's / Girls'","6102.90.0500","61.7¢/kg + 16%",61,"6102","6102.9"],
+  // KNITTED — Joggers / Sweatpants
+  ["KNITTED","Joggers / Sweatpants / Pants","Chief weight: Wool","None","Men's / Boys'","6103.41.1010","61.1¢/kg + 15.8%",61,"6103","6103.41"],
+  ["KNITTED","Joggers / Sweatpants / Pants","Chief weight: Wool","Weighs ≤9 kg/dozen","Men's / Boys'","6103.43.1520","61.7¢/kg + 16%",61,"6103","6103.43"],
+  ["KNITTED","Joggers / Sweatpants / Pants","Chief weight: Wool","Weighs >9 kg/dozen","Men's / Boys'","6103.43.2071","49.3¢/kg + 16%",61,"6103","6103.43"],
+  ["KNITTED","Joggers / Sweatpants / Pants","Chief weight: MMF, <23% wool","None","Men's / Boys'","6103.43.2071","27.9%",61,"6103","6103.43"],
+  ["KNITTED","Joggers / Sweatpants / Pants","Chief weight: MMF, has 23%+ wool","None","Men's / Boys'","6103.49.2055","38.6¢/kg + 10%",61,"6103","6103.49"],
+  ["KNITTED","Joggers / Sweatpants / Pants","Chief weight: Wool","None","Women's / Girls'","6104.61.0010","14.90%",61,"6104","6104.61"],
+  ["KNITTED","Joggers / Sweatpants / Pants","Chief weight: MMF, has 23%+ wool","None","Women's / Girls'","6104.63.1510","14.90%",61,"6104","6104.63"],
+  // KNITTED — Jumpsuit
+  ["KNITTED","Jumpsuit","Chief weight: Wool","None","Women's / Girls'","6114.30.3070","16%",61,"6114","6114.3"],
+  // KNITTED — Polo / Button-Up
+  ["KNITTED","Polo / Button-Up (knit)","Chief weight: MMF, has 23%+ wool","None","Men's / Boys'","6105.20.1000","13.6%",61,"6105","6105.2"],
+  ["KNITTED","Polo / Button-Up (knit)","Chief weight: MMF, <23% wool","None","Men's / Boys'","6105.20.2010","32%",61,"6105","6105.2"],
+  ["KNITTED","Polo / Button-Up (knit)","Chief weight: Wool","None","Men's / Boys'","6105.90.1000","14.9%",61,"6105","6105.9"],
+  ["KNITTED","Polo / Button-Up (knit)","Chief weight: MMF, has 23%+ wool","None","Women's / Girls'","6106.20.1010","14.9%",61,"6106","6106.2"],
+  ["KNITTED","Polo / Button-Up (knit)","Chief weight: MMF, <23% wool","None","Women's / Girls'","6106.20.2010","32.00%",61,"6106","6106.2"],
+  ["KNITTED","Polo / Button-Up (knit)","Chief weight: Wool","None","Women's / Girls'","6106.90.1010","13.60%",61,"6106","6106.9"],
+  // KNITTED — Quarter Zip / Bomber
+  ["KNITTED","Quarter Zip/Bomber (knit)","Chief weight: Wool","None","Men's / Boys'","6110.11.0070","16%",61,"6110","6110.11"],
+  // KNITTED — Scarf
+  ["KNITTED","Scarf / Muffler","Chief weight: Wool","None","Unisex","6117.10.1000","13.4¢/kg + 5.5%",61,"6117","6117.10"],
+  // KNITTED — Shorts
+  ["KNITTED","Shorts (knit)","Chief weight: Wool","Weighs ≤9 kg/dozen","Men's / Boys'","6103.43.1510","61.7¢/kg + 16%",61,"6103","6103.43"],
+  ["KNITTED","Shorts (knit)","Chief weight: Wool","Weighs >9 kg/dozen","Men's / Boys'","6103.43.2045","49.3¢/kg + 16%",61,"6103","6103.43"],
+  ["KNITTED","Shorts (knit)","Chief weight: MMF, has 23%+ wool","None","Men's / Boys'","6103.49.2030","38.6¢/kg + 10%",61,"6103","6103.49"],
+  ["KNITTED","Shorts (knit)","Chief weight: Wool","None","Women's / Girls'","6104.63.2010","Varies by weight",61,"6104","6104.63"],
+  ["KNITTED","Shorts (knit)","Chief weight: MMF, has 23%+ wool","None","Women's / Girls'","6104.69.2030","28.2%",61,"6104","6104.69"],
+  // KNITTED — Skirt
+  ["KNITTED","Skirt (knit)","Chief weight: MMF, has 23%+ wool","None","Women's / Girls'","6104.53.1000","14.9%",61,"6104","6104.53"],
+  ["KNITTED","Skirt (knit)","Chief weight: Wool","None","Women's / Girls'","6104.59.8010","16%",61,"6104","6104.59"],
+  // KNITTED — Sleep Tank / Cami
+  ["KNITTED","Sleep Tank / Cami","Chief weight: Wool","None","Women's / Girls'","6108.91.0030","8.50%",61,"6108","6108.91"],
+  // KNITTED — Socks
+  ["KNITTED","Socks","Chief weight: Wool","None","Unisex","6115.94.0000","10%",61,"6115","6115.94"],
+  ["KNITTED","Socks","Chief weight: MMF, has 23%+ wool","None","Unisex","6115.99.1910","14.6¢/kg + 7.9%",61,"6115","6115.99"],
+  ["KNITTED","Socks","Chief weight: MMF, <23% wool","None","Unisex","6115.99.1920","14.6¢/kg + 7.9%",61,"6115","6115.99"],
+  // KNITTED — Sweater / Pullover / Cardigan
+  ["KNITTED","Sweater / Pullover / Cardigan","Chief weight: Wool","None","Men's / Boys'","6110.11.0015","16%",61,"6110","6110.11"],
+  ["KNITTED","Sweater / Pullover / Cardigan","100% Cashmere ONLY","None","Men's / Boys'","6110.12.1050","4%",61,"6110","6110.12"],
+  ["KNITTED","Sweater / Pullover / Cardigan","Chief weight: Cashmere (not 100%)","None","Men's / Boys'","6110.12.2070","16%",61,"6110","6110.12"],
+  ["KNITTED","Sweater / Pullover / Cardigan","Chief weight: MMF, has 23%+ wool","None","Men's / Boys'","6110.30.1510","17%",61,"6110","6110.3"],
+  ["KNITTED","Sweater / Pullover / Cardigan","Chief weight: Wool","None","Women's / Girls'","6110.11.0030","16%",61,"6110","6110.11"],
+  ["KNITTED","Sweater / Pullover / Cardigan","100% Cashmere ONLY","None","Women's / Girls'","6110.12.1060","4%",61,"6110","6110.12"],
+  ["KNITTED","Sweater / Pullover / Cardigan","Chief weight: Cashmere (not 100%)","None","Women's / Girls'","6110.12.2080","16%",61,"6110","6110.12"],
+  ["KNITTED","Sweater / Pullover / Cardigan","Chief weight: MMF, has 23%+ wool","None","Women's / Girls'","6110.30.1520","17%",61,"6110","6110.3"],
+  // KNITTED — Sweater / Pullover / Hoodie
+  ["KNITTED","Sweater / Pullover / Hoodie","Chief weight: Wool","None","Men's / Boys'","6110.11.0070","16%",61,"6110","6110.11"],
+  ["KNITTED","Sweater / Pullover / Hoodie","Chief weight: MMF, <23% wool","None","Men's / Boys'","6110.30.2010","32%",61,"6110","6110.3"],
+  ["KNITTED","Sweater / Pullover / Hoodie","Chief weight: MMF, has 23%+ wool","None","Men's / Boys'","6110.30.3010","38.6¢/kg + 10%",61,"6110","6110.3"],
+  ["KNITTED","Sweater / Pullover / Hoodie","Chief weight: Wool","None","Women's / Girls'","6110.11.0030","16%",61,"6110","6110.11"],
+  ["KNITTED","Sweater / Pullover / Hoodie","Chief weight: MMF, has 23%+ wool","None","Women's / Girls'","6110.30.1520","17%",61,"6110","6110.3"],
+  ["KNITTED","Sweater / Pullover / Hoodie","Chief weight: MMF, <23% wool","None","Women's / Girls'","6110.30.3020","32%",61,"6110","6110.3"],
+  // KNITTED — T-Shirts
+  ["KNITTED","T-Shirt (Long Sleeve)","Chief weight: Wool","Long sleeves","Men's / Boys'","6109.90.1520","5.6%",61,"6109","6109.9"],
+  ["KNITTED","T-Shirt (Long Sleeve)","Chief weight: Wool","Long sleeves","Women's / Girls'","6109.90.1540","5.6%",61,"6109","6109.9"],
+  ["KNITTED","T-Shirt (MMF blend)","Chief weight: MMF, has 23%+ wool","None","Men's / Boys'","6109.90.1007","32%",61,"6109","6109.9"],
+  ["KNITTED","T-Shirt (MMF blend)","Chief weight: MMF, <23% wool","None","Men's / Boys'","6109.90.1007","32%",61,"6109","6109.9"],
+  ["KNITTED","T-Shirt (MMF blend)","Chief weight: MMF, has 23%+ wool","None","Women's / Girls'","6109.90.1050","32%",61,"6109","6109.9"],
+  ["KNITTED","T-Shirt (MMF blend)","Chief weight: MMF, <23% wool","None","Women's / Girls'","6109.90.1050","32%",61,"6109","6109.9"],
+  ["KNITTED","T-Shirt (Short Sleeve)","Chief weight: Wool","Short sleeves","Men's / Boys'","6109.90.8010","16%",61,"6109","6109.9"],
+  ["KNITTED","T-Shirt (Short Sleeve)","Chief weight: Wool","Short sleeves","Women's / Girls'","6109.90.8030","16%",61,"6109","6109.9"],
+  // KNITTED — Tank Top
+  ["KNITTED","Tank Top","Chief weight: MMF (any % wool)","None","Women's / Girls'","6109.90.1065","32%",61,"6109","6109.9"],
+  ["KNITTED","Tank Top","Chief weight: Wool","None","Women's / Girls'","6109.90.8030","16%",61,"6109","6109.9"],
+  // KNITTED — Tights
+  ["KNITTED","Tights / Base Layer Bottom","Chief weight: Wool","None","Men's / Boys'","6107.29.2000","8.5%",61,"6107","6107.29"],
+  ["KNITTED","Tights / Base Layer Bottom","Chief weight: Wool","None","Women's / Girls'","6115.29.8020","10.6%",61,"6115","6115.29"],
+  // KNITTED — Hat
+  ["KNITTED","Toque / Winter Hat","Chief weight: Wool","None","Unisex","6505.00.3090","25.4¢/kg + 7.7%",65,"6505","6505.00"],
+  // WOVEN — Blazer / Suit Jacket
+  ["WOVEN","Blazer / Suit Jacket","Chief weight: Wool","Fine wool ≤18.5 microns","Men's / Boys'","6203.31.5010","17.5%",62,"6203","6203.31"],
+  ["WOVEN","Blazer / Suit Jacket","Chief weight: Wool","Not fine wool","Men's / Boys'","6203.31.9010","59.5%",62,"6203","6203.31"],
+  ["WOVEN","Blazer / Suit Jacket","Chief weight: MMF, 36%+ wool","None","Men's / Boys'","6203.33.1010","22%",62,"6203","6203.33"],
+  ["WOVEN","Blazer / Suit Jacket","Chief weight: MMF, <36% wool","None","Men's / Boys'","6203.33.2010","27.3%",62,"6203","6203.33"],
+  ["WOVEN","Blazer / Suit Jacket","Chief weight: Wool","None","Women's / Girls'","6204.31.3000","17.5%",62,"6204","6204.31"],
+  ["WOVEN","Blazer / Suit Jacket","Chief weight: MMF, 36%+ wool","None","Women's / Girls'","6204.33.4020","46.3¢/kg + 21%",62,"6204","6204.33"],
+  ["WOVEN","Blazer / Suit Jacket","Chief weight: MMF, <36% wool","None","Women's / Girls'","6204.33.5020","28.2%",62,"6204","6204.33"],
+  // WOVEN — Button-Up / Shirt / Blouse
+  ["WOVEN","Button-Up / Blouse","Chief weight: Wool","None","Women's / Girls'","6206.90.0020","15.9%",62,"6206","6206.9"],
+  ["WOVEN","Button-Up / Shirt","Chief weight: Wool","None","Men's / Boys'","6205.90.0710","17.5%",62,"6205","6205.9"],
+  // WOVEN — Coat / Overcoat
+  ["WOVEN","Coat / Overcoat","Chief weight: Wool","None","Men's / Boys'","6201.20.1110","49.7¢/kg + 19.7%",62,"6201","6201.2"],
+  ["WOVEN","Coat / Overcoat","Chief weight: Cotton","None","Men's / Boys'","6201.30.2010","49.7¢/kg + 19.7%",62,"6201","6201.3"],
+  ["WOVEN","Coat / Overcoat","Chief weight: MMF, 36%+ wool","None","Men's / Boys'","6201.40.1510","49.7¢/kg + 19.7%",62,"6201","6201.4"],
+  ["WOVEN","Coat / Overcoat","Chief weight: MMF, <36% wool","None","Men's / Boys'","6201.40.2010","27.7%",62,"6201","6201.4"],
+  ["WOVEN","Coat / Trench Coat","Chief weight: Wool","None","Women's / Girls'","6202.20.4000","49.7¢/kg + 19.7%",62,"6202","6202.2"],
+  ["WOVEN","Coat / Trench Coat","Chief weight: MMF, 36%+ wool","None","Women's / Girls'","6202.40.1500","43.5¢/kg + 19.7%",62,"6202","6202.4"],
+  ["WOVEN","Coat / Trench Coat","Chief weight: MMF, <36% wool","None","Women's / Girls'","6202.40.2000","27.7%",62,"6202","6202.4"],
+  // WOVEN — Dress
+  ["WOVEN","Dress (woven)","Chief weight: MMF, 36%+ wool","None","Women's / Girls'","6204.43.3020","14.9%",62,"6204","6204.43"],
+  ["WOVEN","Dress (woven)","Chief weight: MMF, <36% wool","None","Women's / Girls'","6204.43.4050","16%",62,"6204","6204.43"],
+  ["WOVEN","Dress (woven)","Chief weight: Wool","None","Women's / Girls'","6204.49.8020","16%",62,"6204","6204.49"],
+  // WOVEN — Jacket / Bomber
+  ["WOVEN","Jacket / Bomber / Coat","Chief weight: MMF, has 36%+ wool","None","Men's / Boys'","6211.33.9058","16%",62,"6211","6211.3"],
+  ["WOVEN","Jacket / Bomber / Coat","Chief weight: Wool","None","Men's / Boys'","6211.39.0345","12%",62,"6211","6211.3"],
+  ["WOVEN","Jacket / Bomber / Coat","Chief weight: Wool","None","Women's / Girls'","6211.39.3045","12%",62,"6211","6211.3"],
+  ["WOVEN","Jacket / Bomber / Coat","Chief weight: MMF, has 36%+ wool","None","Women's / Girls'","6211.43.1078","16%",62,"6211","6211.4"],
+  // WOVEN — Pants / Trousers
+  ["WOVEN","Pants / Trousers","Chief weight: Wool","Fine wool ≤18.5 microns","Men's / Boys'","6203.41.3010","41.9¢/kg + 16.3%",62,"6203","6203.41"],
+  ["WOVEN","Pants / Trousers","Chief weight: Wool","Standard (not water resistant)","Men's / Boys'","6203.41.6010","41.9¢/kg + 16.3%",62,"6203","6203.41"],
+  ["WOVEN","Pants / Trousers","Chief weight: MMF, 36%+ wool","None","Men's / Boys'","6203.43.0910","49.6¢/kg + 19.7%",62,"6203","6203.43"],
+  ["WOVEN","Pants / Trousers","Chief weight: MMF, <36% wool","Water resistant","Men's / Boys'","6203.43.1190","7.1%",62,"6203","6203.43"],
+  ["WOVEN","Pants / Trousers","Chief weight: MMF, <36% wool","Not water resistant","Men's / Boys'","6203.43.1310","27.9%",62,"6203","6203.43"],
+  ["WOVEN","Pants / Trousers","Chief weight: Wool","Standard (not water resistant)","Women's / Girls'","6204.61.8010","13.6%",62,"6204","6204.61"],
+  ["WOVEN","Pants / Trousers","Chief weight: MMF, <36% wool","Water resistant","Women's / Girls'","6204.63.0200","7.6%",62,"6204","6204.63"],
+  ["WOVEN","Pants / Trousers","Chief weight: MMF, <36% wool","Not water resistant","Women's / Girls'","6204.63.1520","28.6%",62,"6204","6204.63"],
+  ["WOVEN","Pants / Trousers","Chief weight: MMF, 36%+ wool","None","Women's / Girls'","6204.69.0210","13.60%",62,"6204","6204.69"],
+  // WOVEN — Pants / Trousers (Ripstop)
+  ["WOVEN","Pants / Trousers (Ripstop)","Chief weight: MMF, 36%+ wool","None","Men's / Boys'","6203.43.0910","49.6¢/kg + 19.7%",62,"6203","6204.43"],
+  ["WOVEN","Pants / Trousers (Ripstop)","Chief weight: MMF, 36%+ wool","None","Women's / Girls'","6204.63.7010","13.60%",62,"6204","6204.63"],
+  // WOVEN — Shorts
+  ["WOVEN","Shorts","Chief weight: Wool","None","Men's / Boys'","6203.41.6030","41.9¢/kg + 16.3%",62,"6203","6203.41"],
+  ["WOVEN","Shorts","Chief weight: MMF, 36%+ wool","None","Men's / Boys'","6203.43.0930","49.6¢/kg + 19.7%",62,"6203","6203.43"],
+  ["WOVEN","Shorts","Chief weight: Wool","None","Women's / Girls'","6204.61.8030","13.6%",62,"6204","6204.61"],
+  ["WOVEN","Shorts","Chief weight: MMF, 36%+ wool","None","Women's / Girls'","6204.69.0230","28.2%",62,"6204","6204.69"],
+  ["WOVEN","Shorts (Linen)","Chief weight: Linen (flax), <70% silk","None (Standard)","Men's / Boys'","6203.49.9060","2.80%",62,"6203","6203.49"],
+  // WOVEN — Skirt
+  ["WOVEN","Skirt (woven)","Chief weight: MMF, 36%+ wool","None","Women's / Girls'","6204.53.2020","14.9%",62,"6204","6204.53"],
+  ["WOVEN","Skirt (woven)","Chief weight: MMF, <36% wool","None","Women's / Girls'","6204.53.3020","16%",62,"6204","6204.53"],
+  ["WOVEN","Skirt (woven)","Chief weight: Wool","None","Women's / Girls'","6204.59.4020","16%",62,"6204","6204.59"],
+  // WOVEN — Sleep Tank / Cami
+  ["WOVEN","Sleep Tank / Cami","Chief weight: Wool","None","Women's / Girls'","6208.29.9010","7.10%",61,"6108","6108.91"],
+];
+
+// Columns: [country, section301, ieepa, ftaDiscount, notes]
+const COUNTRIES_BUILTIN = [
+  ["China",7.5,20,0,"Section 301 List 4A (7.5%) + IEEPA reciprocal (20%). Truce rate effective May 2025. Verify current USTR orders — rates change rapidly."],
+  ["Vietnam",0,20,0,"IEEPA reciprocal 20% (reduced from 46%). Deal effective July 2025. 40% if transshipped from China."],
+  ["Thailand",0,19,0,"IEEPA rate 19%. Framework agreement pending; may reduce further. Verify current rate with CBP."],
+  ["Italy",0,0,0,"EU member. 15% total tariff ceiling applies; apparel MFN rates already meet threshold. No additional IEEPA currently assessed."],
+  ["Portugal",0,0,0,"EU member. 15% total tariff ceiling applies; apparel MFN rates already meet threshold. No additional IEEPA currently assessed."],
+  ["Romania",0,0,0,"EU member. 15% total tariff ceiling applies; apparel MFN rates already meet threshold. No additional IEEPA currently assessed."],
+  ["Japan",0,0,0,"Deal reached. 15% total tariff ceiling applies; apparel MFN rates already meet threshold. No additional IEEPA currently assessed."],
+  ["Slovenia",0,0,0,"EU member. 15% total tariff ceiling applies; apparel MFN rates already meet threshold. No additional IEEPA currently assessed."],
+  ["South Korea",0,0,100,"KORUS FTA — duty free for qualifying goods meeting rules of origin. No additional IEEPA for apparel under current agreement."],
+  ["TBC",0,10,0,"Country to be confirmed — using 10% IEEPA baseline rate as placeholder. Update once COO is determined."],
+  ["Canada (USMCA)",0,0,100,"USMCA-qualifying goods duty free. Requires yarn-forward rule of origin for textiles. Verify ROO compliance for each style."],
+  ["Canada (Non-USMCA)",0,35,0,"Non-originating goods subject to 35% IEEPA. Does not meet USMCA rules of origin. Verify classification."],
+];
+
+let REF = REF_BUILTIN;
+let COUNTRIES = COUNTRIES_BUILTIN;
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+const st = {s1:"",s2:"",s3:"",s4:"",s5:"",s6:"",htsCode:""};
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+(function(){
+  if(new URLSearchParams(location.search).get("widget")==="true") document.body.classList.add("wm");
+  try{ const s=localStorage.getItem('hts_ref'); if(s) REF=JSON.parse(s); }catch(e){}
+  try{ const s=localStorage.getItem('hts_countries'); if(s) COUNTRIES=JSON.parse(s); }catch(e){}
+  fillSelect("sel1",uniq(REF,[],C.co).sort(),"Select construction…");
+  fillSelect("sel6",COUNTRIES.map(r=>r[0]),"Select country of origin…");
+  updateAdminStatus();
+})();
+
+// ── STEP DISPATCHER ───────────────────────────────────────────────────────
+function handleStep(n){
+  const val=document.getElementById("sel"+n).value;
+  st["s"+n]=val;
+
+  // clear downstream steps
+  for(let i=n+1;i<=6;i++){
+    st["s"+i]="";
+    document.getElementById("v"+i).textContent="—";
+    if(i<6) fillSelect("sel"+i,[],"Select…");
+    else document.getElementById("sel6").value="";
+    stepClass(i,"disabled");
+  }
+
+  if(!val){
+    stepClass(n,"active");
+    document.getElementById("v"+n).textContent="—";
+    setCode(n-1);
+    clearDuty();
+    return;
+  }
+  stepClass(n,"complete");
+  document.getElementById("v"+n).textContent=val;
+
+  if(n===1) step1();
+  else if(n===2) step2();
+  else if(n===3) step3();
+  else if(n===4) step4();
+  else if(n===5) step5();
+  else            step6();
+}
+
+function step1(){
+  const f=[[C.co,st.s1]];
+  setCode(1,String(uniq(REF,f,C.ch)[0]||"61"));
+  fillSelect("sel2",uniq(REF,f,C.pt).sort(),"Select product type…");
+  stepClass(2,"active");
+}
+
+function step2(){
+  const f=[[C.co,st.s1],[C.pt,st.s2]];
+  setCode(2,uniq(REF,f,C.hd)[0]||"");
+  fillSelect("sel3",uniq(REF,f,C.fc).sort(),"Select fiber content…");
+  stepClass(3,"active");
+}
+
+function step3(){
+  const f=[[C.co,st.s1],[C.pt,st.s2],[C.fc,st.s3]];
+  setCode(3,uniq(REF,f,C.sh)[0]||"");
+  const opts=uniqDuty(REF,f,C.sr).sort((a,b)=>parseDuty(a.duty)-parseDuty(b.duty)).map(x=>x.val);
+  fillSelect("sel4",opts,"Select special requirement…");
+  stepClass(4,"active");
+}
+
+function step4(){
+  const f=[[C.co,st.s1],[C.pt,st.s2],[C.fc,st.s3],[C.sr,st.s4]];
+  const partial=(uniq(REF,f,C.hts)[0]||"").substring(0,10);
+  if(partial) setCode(4,partial);
+  const genders=uniq(REF,f,C.ge).sort();
+  fillSelect("sel5",genders,"Select gender / age group…");
+  stepClass(5,"active");
+  if(genders.length===1){document.getElementById("sel5").value=genders[0];handleStep(5);}
+}
+
+function step5(){
+  const f=[[C.co,st.s1],[C.pt,st.s2],[C.fc,st.s3],[C.sr,st.s4],[C.ge,st.s5]];
+  const row=REF.find(r=>f.every(([c,v])=>r[c]===v));
+  if(row){
+    st.htsCode=row[C.hts];
+    setCode(5,row[C.hts],true);
+    showBase(row[C.dr]);
+    stepClass(5,"complete");
+    stepClass(6,"active");
+    fillSelect("sel6",COUNTRIES.map(r=>r[0]),"Select country of origin…");
+  } else {
+    setCode(5,"No match found",false,true);
+    clearDuty();
+  }
+}
+
+function step6(){
+  const cr=COUNTRIES.find(r=>r[0]===st.s6);
+  if(!cr) return;
+  const f=[[C.co,st.s1],[C.pt,st.s2],[C.fc,st.s3],[C.sr,st.s4],[C.ge,st.s5]];
+  const row=REF.find(r=>f.every(([c,v])=>r[c]===v));
+  if(!row) return;
+
+  const [,s301,ieepa,fta,notes]=cr;
+  const base=parseDuty(row[C.dr]);
+  const addl=s301+ieepa;
+  let finalStr,finalClass;
+
+  if(fta>=100){
+    finalStr="FREE (FTA)"; finalClass="low";
+  } else if(row[C.dr].includes("¢/kg")||row[C.dr].includes("cents/kg")){
+    finalStr=row[C.dr]+(addl>0?" + "+addl+"%":"");
+    finalClass=addl>0?"high":"";
+  } else {
+    const adj=base*(1-fta/100)+addl;
+    finalStr=adj.toFixed(1)+"%";
+    finalClass=adj===0?"low":adj>25?"high":"";
+  }
+
+  stepClass(6,"complete");
+  document.getElementById("v6").textContent=st.s6;
+  // mark all dots done
+  for(let i=1;i<=6;i++) document.getElementById("dot"+i).className="dot done";
+
+  renderDuty(row[C.dr],s301,ieepa,fta,finalStr,finalClass);
+
+  const nb=document.getElementById("notesBox");
+  if(notes){nb.textContent="ⓘ "+notes;nb.classList.add("on");}
+  else nb.classList.remove("on");
+}
+
+// ── RENDERING ─────────────────────────────────────────────────────────────
+function setCode(stage,code,found=false,error=false){
+  const el=document.getElementById("codeDisplay");
+  if(found){
+    el.innerHTML=`<span class="k">${esc(code)}</span>`;
+    el.className="code-display found";
+  } else if(error){
+    el.innerHTML=`<span class="k">${esc(code)}</span>`;
+    el.className="code-display error";
+  } else if(!stage||!code){
+    el.innerHTML=`<span class="u">xxxx.xx.xxxx</span>`;
+    el.className="code-display";
+  } else {
+    el.innerHTML=partialCode(code);
+    el.className="code-display";
+  }
+  // update dots
+  for(let i=1;i<=6;i++){
+    const d=document.getElementById("dot"+i);
+    d.className="dot"+(i<stage?" done":i===stage?" active":"");
+  }
+}
+
+function partialCode(raw){
+  const s=raw.replace(/\./g,"");
+  const lens=[4,2,4];
+  let pos=0,parts=[];
+  for(let i=0;i<3;i++){
+    const chunk=s.substring(pos,pos+lens[i]);
+    const pad="xxxx".substring(0,lens[i]);
+    if(chunk.length===lens[i]) parts.push(`<span class="k">${esc(chunk)}</span>`);
+    else if(chunk.length>0) parts.push(`<span class="k">${esc(chunk)}</span><span class="u">${pad.substring(chunk.length)}</span>`);
+    else parts.push(`<span class="u">${pad}</span>`);
+    pos+=lens[i];
+  }
+  return parts.join(`<span class="u">.</span>`);
+}
+
+function showBase(dutyStr){
+  document.getElementById("dutyContent").innerHTML=`
+    <div class="duty-grid">
+      <div class="duty-row base span2">
+        <span class="duty-row-lbl">Base Duty Rate</span>
+        <span class="duty-row-val">${esc(dutyStr)}</span>
+      </div>
+      <div class="duty-placeholder" style="grid-column:1/-1;border:none;padding:14px 0;font-size:12px">
+        Select Country of Origin (Step 6) to apply Section&nbsp;301, IEEPA, and FTA adjustments.
+      </div>
+    </div>`;
+}
+
+function renderDuty(base,s301,ieepa,fta,finalStr,finalClass){
+  const s301html=s301>0
+    ?`<div class="duty-row add"><span class="duty-row-lbl">Section 301</span><span class="duty-row-val">+${s301}%</span></div>`
+    :`<div class="duty-row none"><span class="duty-row-lbl">Section 301</span><span class="duty-row-val">None</span></div>`;
+  const ieepaHtml=ieepa>0
+    ?`<div class="duty-row add"><span class="duty-row-lbl">IEEPA Tariff</span><span class="duty-row-val">+${ieepa}%</span></div>`
+    :`<div class="duty-row none"><span class="duty-row-lbl">IEEPA Tariff</span><span class="duty-row-val">None</span></div>`;
+  const ftaHtml=fta>=100
+    ?`<div class="duty-row discount span2"><span class="duty-row-lbl">FTA Benefit</span><span class="duty-row-val">100% — Duty Free</span></div>`
+    :fta>0
+    ?`<div class="duty-row discount span2"><span class="duty-row-lbl">FTA Reduction</span><span class="duty-row-val">−${fta}% of base</span></div>`
+    :`<div class="duty-row none span2"><span class="duty-row-lbl">FTA Benefit</span><span class="duty-row-val">None</span></div>`;
+
+  document.getElementById("dutyContent").innerHTML=`
+    <div class="duty-grid">
+      <div class="duty-row base span2">
+        <span class="duty-row-lbl">Base Duty Rate</span>
+        <span class="duty-row-val">${esc(base)}</span>
+      </div>
+      ${s301html}
+      ${ieepaHtml}
+      ${ftaHtml}
+      <div class="duty-row final ${finalClass} span2">
+        <span class="duty-row-lbl">Final Estimated Duty</span>
+        <span class="duty-row-val">${esc(finalStr)}</span>
+      </div>
+    </div>`;
+}
+
+function clearDuty(){
+  document.getElementById("dutyContent").innerHTML=`
+    <div class="duty-placeholder">
+      Complete steps 1–5 to see the base duty rate,<br>then select Country of Origin for the full calculation.
+    </div>`;
+  document.getElementById("notesBox").classList.remove("on");
+}
+
+// ── DOM HELPERS ───────────────────────────────────────────────────────────
+function stepClass(n,cls){
+  const el=document.getElementById("step"+n);
+  el.classList.remove("active","complete","disabled");
+  el.classList.add(cls);
+  const sel=document.getElementById("sel"+n);
+  if(sel) sel.disabled=(cls==="disabled");
+}
+
+function fillSelect(id,opts,placeholder){
+  document.getElementById(id).innerHTML=
+    `<option value="">${placeholder}</option>`+
+    opts.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join("");
+}
+
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");}
+
+// ── DATA HELPERS ──────────────────────────────────────────────────────────
+function uniq(data,filters,col){
+  const s=new Set();
+  for(const r of data) if(filters.every(([c,v])=>r[c]===v)&&r[col]!=null&&r[col]!=="") s.add(r[col]);
+  return Array.from(s);
+}
+
+function uniqDuty(data,filters,col){
+  const m=new Map();
+  for(const r of data){
+    if(filters.every(([c,v])=>r[c]===v)&&r[col]){
+      const v=r[col],d=r[C.dr];
+      if(!m.has(v)||parseDuty(d)<parseDuty(m.get(v).duty)) m.set(v,{val:v,duty:d});
+    }
+  }
+  return Array.from(m.values());
+}
+
+function parseDuty(s){
+  if(!s) return 0;
+  const mp=String(s).match(/(\d+\.?\d*)%/);
+  if(mp) return parseFloat(mp[1]);
+  const mn=String(s).match(/^(\d+\.?\d*)/);
+  if(mn){const v=parseFloat(mn[1]);return v>0&&v<1?v*100:v;}
+  return 0;
+}
+
+// ── RESET ─────────────────────────────────────────────────────────────────
+function resetAll(){
+  for(let i=1;i<=6;i++){st["s"+i]="";document.getElementById("v"+i).textContent="—";}
+  st.htsCode="";
+  stepClass(1,"active");
+  for(let i=2;i<=6;i++) stepClass(i,"disabled");
+  document.getElementById("sel1").value="";
+  for(let i=2;i<=5;i++) fillSelect("sel"+i,[],["","","Select product type…","Select fiber content…","Select special req…","Select gender…"][i]);
+  fillSelect("sel1",uniq(REF,[],C.co).sort(),"Select construction…");
+  fillSelect("sel6",COUNTRIES.map(r=>r[0]),"Select country of origin…");
+  setCode(0);
+  clearDuty();
+}
+
+// ── ADMIN ─────────────────────────────────────────────────────────────────
+function toggleAdmin(){
+  const p=document.getElementById("adminPanel");
+  const b=document.getElementById("adminBtn");
+  const opening=p.style.display==="none";
+  p.style.display=opening?"block":"none";
+  b.classList.toggle("open",opening);
+}
+
+function handleUpload(type,input){
+  const file=input.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>processCSV(type,e.target.result);
+  reader.readAsText(file);
+  input.value="";
+}
+
+function dropFile(e,type,zoneId){
+  e.preventDefault();
+  dragLeave(zoneId);
+  const file=e.dataTransfer.files[0];
+  if(!file||!file.name.endsWith(".csv")) return;
+  const reader=new FileReader();
+  reader.onload=ev=>processCSV(type,ev.target.result);
+  reader.readAsText(file);
+}
+
+function processCSV(type,text){
+  const statusId=type==="ref"?"refStatus":"countryStatus";
+  try{
+    const rows=parseCSV(text);
+    if(!rows.length) throw new Error("Empty file");
+    if(type==="ref"){
+      if(rows[0].length<10) throw new Error("Expected 10 columns");
+      REF=rows;
+      localStorage.setItem('hts_ref',JSON.stringify(rows));
+      localStorage.setItem('hts_ref_ts',Date.now());
+    } else {
+      if(rows[0].length<5) throw new Error("Expected 5 columns");
+      COUNTRIES=rows.map(r=>[r[0],Number(r[1])||0,Number(r[2])||0,Number(r[3])||0,r[4]||""]);
+      localStorage.setItem('hts_countries',JSON.stringify(COUNTRIES));
+      localStorage.setItem('hts_countries_ts',Date.now());
+    }
+    resetAll();
+    updateAdminStatus();
+  } catch(err){
+    setZoneStatus(statusId,"err","Error: "+err.message);
+  }
+}
+
+function parseCSV(text){
+  const lines=text.replace(/\r\n/g,"\n").replace(/\r/g,"\n").trim().split("\n");
+  return lines.slice(1).filter(l=>l.trim()).map(line=>{
+    const cells=[];
+    let cur="",inQ=false;
+    for(let i=0;i<line.length;i++){
+      const ch=line[i];
+      if(ch==='"'&&!inQ) inQ=true;
+      else if(ch==='"'&&inQ&&line[i+1]==='"'){cur+='"';i++;}
+      else if(ch==='"'&&inQ) inQ=false;
+      else if(ch===','&&!inQ){cells.push(cur.trim());cur="";}
+      else cur+=ch;
+    }
+    cells.push(cur.trim());
+    return cells;
+  });
+}
+
+function restoreDefaults(){
+  ['hts_ref','hts_countries','hts_ref_ts','hts_countries_ts'].forEach(k=>localStorage.removeItem(k));
+  REF=REF_BUILTIN;
+  COUNTRIES=COUNTRIES_BUILTIN;
+  resetAll();
+  updateAdminStatus();
+}
+
+function updateAdminStatus(){
+  const refTs=localStorage.getItem('hts_ref_ts');
+  const ctTs=localStorage.getItem('hts_countries_ts');
+  const hasRef=!!localStorage.getItem('hts_ref');
+  const hasCt=!!localStorage.getItem('hts_countries');
+  setZoneStatus("refStatus",hasRef?"ok":"",hasRef?REF.length+" rows · "+fmtTs(refTs):"Built-in ("+REF_BUILTIN.length+" rows)");
+  setZoneStatus("countryStatus",hasCt?"ok":"",hasCt?COUNTRIES.length+" countries · "+fmtTs(ctTs):"Built-in ("+COUNTRIES_BUILTIN.length+" countries)");
+  const latest=Math.max(Number(refTs)||0,Number(ctTs)||0);
+  const el=document.getElementById("adminUpdated");
+  if(el) el.textContent=latest?"Last updated "+fmtTs(latest):"";
+}
+
+function setZoneStatus(id,cls,text){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.textContent=text;
+  el.className="upload-status"+(cls?" "+cls:"");
+}
+
+function fmtTs(ts){
+  return new Date(Number(ts)).toLocaleString(undefined,{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"});
+}
+
+function dragOver(e,id){e.preventDefault();document.getElementById(id).classList.add("drag");}
+function dragLeave(id){document.getElementById(id).classList.remove("drag");}
+</script>
+</body>
+</html>
