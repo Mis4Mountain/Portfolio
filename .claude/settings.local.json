@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:www.tfss.ca)"
+      "WebFetch(domain:www.tfss.ca)",
+      "Bash(git config *)"
     ]
   }
 }
