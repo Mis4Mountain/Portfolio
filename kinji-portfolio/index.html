@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kinji · Product Analytics Case Study</title>
+  <meta name="description" content="Product analytics and strategy case study for Kinji — AI-powered household food intelligence. Covers product ownership, onboarding design, AI systems, data modeling, and experimentation." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Design tokens ── */
+    :root {
+      --ink:     #0D0F14;
+      --ink-2:   #1a1d26;
+      --muted:   #6b7280;
+      --muted-2: #9ca3af;
+      --amber:   #F5A30C;
+      --amber-2: #fbbf24;
+      --amber-bg:#fff8e6;
+      --surface: #ffffff;
+      --surface-2:#f8f9fb;
+      --border:  rgba(13,15,20,.10);
+      --border-2:rgba(13,15,20,.06);
+      --shadow-sm: 0 1px 3px rgba(13,15,20,.06), 0 4px 16px rgba(13,15,20,.06);
+      --shadow-md: 0 4px 6px rgba(13,15,20,.04), 0 12px 40px rgba(13,15,20,.09);
+      --shadow-lg: 0 8px 10px rgba(13,15,20,.04), 0 24px 64px rgba(13,15,20,.12);
+      --radius-sm: 10px;
+      --radius:    16px;
+      --radius-lg: 24px;
+      --max: 1120px;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+    body { font-family: var(--font); color: var(--ink); background: var(--surface); line-height: 1.6; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+
+    /* ── Layout ── */
+    .wrap { width: min(var(--max), calc(100% - 48px)); margin: 0 auto; }
+    section { padding: 96px 0; }
+    section + section { border-top: 1px solid var(--border-2); }
+
+    /* ── Typography ── */
+    h1, h2, h3, h4 { line-height: 1.1; letter-spacing: -0.03em; }
+    h1 { font-size: clamp(40px, 6vw, 72px); font-weight: 900; }
+    h2 { font-size: clamp(30px, 4vw, 48px); font-weight: 800; margin-bottom: 12px; }
+    h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    h4 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    p  { color: var(--muted); font-size: 16px; line-height: 1.7; }
+
+    /* ── Components ── */
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: var(--amber-bg);
+      color: #92600a;
+      border: 1px solid rgba(245,163,12,.25);
+    }
+    .tag.dark {
+      background: rgba(245,163,12,.15);
+      color: var(--amber);
+      border-color: rgba(245,163,12,.3);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 22px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+    .btn:hover { opacity: .88; }
+    .btn-primary {
+      background: var(--amber);
+      color: var(--ink);
+      box-shadow: 0 4px 14px rgba(245,163,12,.4);
+    }
+    .btn-ghost {
+      background: rgba(255,255,255,.12);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,.25);
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      box-shadow: var(--shadow-sm);
+    }
+    .card-dark {
+      background: var(--ink-2);
+      border-color: rgba(255,255,255,.07);
+      color: #fff;
+    }
+    .card-dark p { color: rgba(255,255,255,.6); }
+    .card-amber {
+      background: var(--amber-bg);
+      border-color: rgba(245,163,12,.2);
+    }
+
+    /* ── Section head ── */
+    .section-head { max-width: 680px; margin-bottom: 48px; }
+    .section-head .tag { margin-bottom: 16px; }
+    .section-head p { font-size: 18px; margin-top: 12px; }
+
+    /* ── Grids ── */
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+    /* ── Divider ── */
+    .divider { height: 1px; background: var(--border-2); margin: 40px 0; }
+
+    /* ── Step number ── */
+    .step-num {
+      display: inline-grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--amber);
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    /* ════════════════════════════════════════
+       HEADER
+    ════════════════════════════════════════ */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(255,255,255,.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-2);
+    }
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 68px;
+      gap: 24px;
+    }
+    .brand img { height: 28px; width: auto; }
+    .brand-fallback {
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: -0.05em;
+      color: var(--ink);
+    }
+    .brand-fallback span { color: var(--amber); }
+    .nav-links {
+      display: flex;
+      gap: 6px;
+    }
+    .nav-links a {
+      padding: 7px 13px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      transition: color .15s, background .15s;
+    }
+    .nav-links a:hover { color: var(--ink); background: var(--surface-2); }
+
+    /* ════════════════════════════════════════
+       HERO  (dark)
+    ════════════════════════════════════════ */
+    .hero {
+      background: var(--ink);
+      padding: 100px 0 80px;
+    }
+    .hero-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+    }
+    .hero-copy h1 { color: #fff; margin: 20px 0 20px; }
+    .hero-copy p  { color: rgba(255,255,255,.58); font-size: 18px; line-height: 1.7; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+    .hero-meta {
+      display: flex;
+      gap: 24px;
+      margin-top: 40px;
+      padding-top: 32px;
+      border-top: 1px solid rgba(255,255,255,.1);
+    }
+    .hero-meta-item { }
+    .hero-meta-item .num {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      color: var(--amber);
+      line-height: 1;
+    }
+    .hero-meta-item .lbl {
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,.4);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-top: 4px;
+    }
+
+    /* ── App screenshots panel ── */
+    .hero-screens {
+      position: relative;
+    }
+    .screens-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 12px;
+    }
+    .screen-card {
+      background: #1a1d26;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .screen-card img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .screen-card.wide { grid-column: span 2; }
+    .screen-label {
+      padding: 10px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.4);
+    }
+
+    /* ════════════════════════════════════════
+       OWNERSHIP
+    ════════════════════════════════════════ */
+    .ownership-grid {
+      display: grid;
+      grid-template-columns: 2fr 3fr;
+      gap: 24px;
+      align-items: start;
+    }
+    .ownership-lead {
+      background: var(--ink);
+      color: #fff;
+      border-radius: var(--radius-lg);
+      padding: 36px;
+      position: relative;
+      overflow: hidden;
+    }
+    .ownership-lead::after {
+      content: '';
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      right: -60px;
+      bottom: -60px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(245,163,12,.3), transparent 70%);
+      pointer-events: none;
+    }
+    .ownership-lead h2 { color: #fff; font-size: 28px; margin-bottom: 12px; }
+    .ownership-lead p  { color: rgba(255,255,255,.6); font-size: 15px; }
+    .scope-list { display: grid; gap: 12px; }
+    .scope-item {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .scope-item h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .scope-item p  { font-size: 14px; margin: 0; }
+
+    /* ════════════════════════════════════════
+       PROBLEM
+    ════════════════════════════════════════ */
+    .problem-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+    .problem-card {
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      border: 1px solid var(--border);
+    }
+    .problem-card .icon {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-sm);
+      display: grid;
+      place-items: center;
+      margin-bottom: 16px;
+      font-size: 22px;
+    }
+    .problem-card h3 { font-size: 18px; }
+    .problem-card p  { font-size: 15px; margin-top: 8px; }
+
+    /* ════════════════════════════════════════
+       ONBOARDING
+    ════════════════════════════════════════ */
+    .onboarding-screens {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .ob-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .ob-card-head {
+      padding: 20px 20px 0;
+    }
+    .ob-card-head .num-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .ob-card-head h3 { font-size: 17px; }
+    .ob-card-head p  { font-size: 14px; color: var(--muted); margin-top: 6px; }
+    .ob-choices {
+      padding: 16px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .ob-choice {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .ob-cta {
+      background: var(--amber);
+      color: var(--ink);
+      padding: 11px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 800;
+      text-align: center;
+      margin-top: 4px;
+    }
+
+    .flow-strip {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+    }
+    .flow-strip h3 { font-size: 17px; margin-bottom: 20px; }
+    .flow-steps {
+      display: flex;
+      gap: 0;
+      align-items: stretch;
+      overflow-x: auto;
+    }
+    .flow-step {
+      flex: 1;
+      min-width: 140px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+    }
+    .flow-step strong { display: block; font-size: 14px; font-weight: 700; margin-top: 8px; }
+    .flow-step small  { display: block; font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .flow-connector {
+      display: grid;
+      place-items: center;
+      padding: 0 10px;
+      color: var(--amber);
+      font-size: 18px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* ════════════════════════════════════════
+       AI SYSTEM
+    ════════════════════════════════════════ */
+    .pipeline-grid {
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .pipe-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+    }
+    .pipe-card .pipe-step {
+      display: inline-grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--ink);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 14px;
+    }
+    .pipe-card h4 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .pipe-card p  { font-size: 13px; color: var(--muted); }
+
+    /* ════════════════════════════════════════
+       TABLE
+    ════════════════════════════════════════ */
+    .table-wrap {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      background: var(--ink);
+      color: rgba(255,255,255,.7);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      padding: 14px 20px;
+      text-align: left;
+    }
+    tbody tr { border-bottom: 1px solid var(--border-2); }
+    tbody tr:last-child { border-bottom: none; }
+    tbody td {
+      padding: 16px 20px;
+      font-size: 14px;
+      color: var(--muted);
+      vertical-align: top;
+    }
+    tbody td strong { color: var(--ink); }
+    tbody tr:hover td { background: var(--surface-2); }
+
+    /* ════════════════════════════════════════
+       ANALYTICS
+    ════════════════════════════════════════ */
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    .funnel-bar-group { display: grid; gap: 12px; margin-top: 20px; }
+    .funnel-row {
+      display: grid;
+      grid-template-columns: 160px 1fr 48px;
+      align-items: center;
+      gap: 12px;
+    }
+    .funnel-label { font-size: 13px; font-weight: 600; color: var(--muted); }
+    .funnel-track {
+      height: 10px;
+      border-radius: 999px;
+      background: var(--surface-2);
+      border: 1px solid var(--border-2);
+      overflow: hidden;
+    }
+    .funnel-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--ink), #374151);
+    }
+    .funnel-fill.top { background: var(--amber); }
+    .funnel-pct { font-size: 13px; font-weight: 700; color: var(--ink); text-align: right; }
+
+    /* ════════════════════════════════════════
+       EXPERIMENTS CALLOUT
+    ════════════════════════════════════════ */
+    .experiment-callout {
+      background: var(--ink);
+      border-radius: var(--radius-lg);
+      padding: 44px;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .experiment-callout::before {
+      content: '';
+      position: absolute;
+      width: 320px;
+      height: 320px;
+      right: -80px;
+      top: -80px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(245,163,12,.2), transparent 65%);
+      pointer-events: none;
+    }
+    .experiment-callout h2 { color: #fff; position: relative; }
+    .experiment-callout p  { color: rgba(255,255,255,.55); font-size: 17px; max-width: 680px; margin-top: 12px; position: relative; }
+
+    /* ════════════════════════════════════════
+       ARTIFACTS STRIP
+    ════════════════════════════════════════ */
+    .artifact-strip { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+    .artifact-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .artifact-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      display: grid;
+      place-items: center;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--ink);
+    }
+    .artifact-card h4 { font-size: 15px; font-weight: 700; color: var(--ink); }
+    .artifact-card p  { font-size: 13px; color: var(--muted); }
+
+    /* ════════════════════════════════════════
+       FOOTER
+    ════════════════════════════════════════ */
+    footer {
+      background: var(--ink);
+      padding: 56px 0;
+    }
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+    .footer-brand img { height: 24px; width: auto; margin-bottom: 12px; }
+    .footer-brand .fallback { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -0.04em; margin-bottom: 10px; }
+    .footer-brand .fallback span { color: var(--amber); }
+    .footer-brand p { font-size: 14px; color: rgba(255,255,255,.38); margin: 0; }
+    .footer-right { text-align: right; }
+    .footer-right p { font-size: 13px; color: rgba(255,255,255,.38); margin: 0; line-height: 1.8; }
+
+    /* ════════════════════════════════════════
+       RESPONSIVE
+    ════════════════════════════════════════ */
+    @media (max-width: 1024px) {
+      .hero-inner, .ownership-grid { grid-template-columns: 1fr; }
+      .hero-inner { gap: 48px; }
+      .screens-grid .screen-card.wide { grid-column: span 1; }
+    }
+    @media (max-width: 768px) {
+      section { padding: 64px 0; }
+      .grid-2, .grid-3, .grid-4,
+      .problem-cards, .onboarding-screens, .pipeline-grid,
+      .analytics-grid, .artifact-strip { grid-template-columns: 1fr; }
+      .flow-steps { flex-direction: column; }
+      .flow-connector { transform: rotate(90deg); }
+      .nav-links { display: none; }
+      .funnel-row { grid-template-columns: 1fr 60px; }
+      .funnel-label { display: none; }
+      .hero-meta { flex-wrap: wrap; gap: 20px; }
+    }
+    @media print {
+      header, .hero-actions { display: none; }
+      body { background: #fff; }
+      section { padding: 32px 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header>
+  <nav class="wrap">
+    <a class="brand" href="#top">
+      <img
+        src="https://www.kinji.ai/_next/image?url=%2Fassets%2F1%20Nav%20menu%2Flogo.ai%20(2)%201.png&w=256&q=75"
+        alt="Kinji"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='block'"
+      />
+      <span class="brand-fallback" style="display:none">kin<span>ji</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="#ownership">Ownership</a>
+      <a href="#onboarding">Onboarding</a>
+      <a href="#ai-system">AI System</a>
+      <a href="#data-model">Data Model</a>
+      <a href="#analytics">Analytics</a>
+      <a href="#artifacts">Artifacts</a>
+    </div>
+  </nav>
+</header>
+
+<main id="top">
+
+  <!-- ── HERO ── -->
+  <section class="hero">
+    <div class="wrap hero-inner">
+      <div class="hero-copy">
+        <div class="tag dark">Product Analytics · AI Product · Strategy</div>
+        <h1>Household food intelligence, built as a product system.</h1>
+        <p>Kinji turns a messy kitchen problem — food waste, decision fatigue, invisible inventory — into a measurable product. This case study covers the product work I owned: vision, onboarding design, household data modeling, AI recipe logic, KPI design, and experimentation planning.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#ownership">My ownership</a>
+          <a class="btn btn-ghost" href="#analytics">See analytics framework</a>
+        </div>
+        <div class="hero-meta">
+          <div class="hero-meta-item">
+            <div class="num">5</div>
+            <div class="lbl">product areas owned</div>
+          </div>
+          <div class="hero-meta-item">
+            <div class="num">3</div>
+            <div class="lbl">experiments defined</div>
+          </div>
+          <div class="hero-meta-item">
+            <div class="num">4</div>
+            <div class="lbl">core KPIs designed</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-screens">
+        <div class="screens-grid">
+          <div class="screen-card wide">
+            <img
+              src="https://www.kinji.ai/assets/4%20Kinji%20Features/Homepage.png"
+              alt="Kinji home screen — Tonight's smart meal suggestions"
+              loading="eager"
+            />
+            <div class="screen-label">Home · smart meal suggestions</div>
+          </div>
+          <div class="screen-card">
+            <img
+              src="https://www.kinji.ai/assets/4%20Kinji%20Features/Inventory.png"
+              alt="Kinji pantry inventory"
+              loading="eager"
+            />
+            <div class="screen-label">Pantry inventory</div>
+          </div>
+          <div class="screen-card">
+            <img
+              src="https://www.kinji.ai/assets/4%20Kinji%20Features/recipe.png"
+              alt="Kinji AI recipe generation"
+              loading="eager"
+            />
+            <div class="screen-label">AI recipe generation</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── OWNERSHIP ── -->
+  <section id="ownership">
+    <div class="wrap">
+      <div class="ownership-grid">
+        <div class="ownership-lead">
+          <h2>What I was responsible for</h2>
+          <p>My contribution sits at the intersection of product strategy and analytical execution — translating a household food problem into structured requirements, data objects, user flows, and measurable outcomes.</p>
+        </div>
+        <div class="scope-list">
+          <div class="scope-item">
+            <div class="step-num">01</div>
+            <div>
+              <h4>Product vision and requirements</h4>
+              <p>Defined Kinji around waste reduction, grocery savings, and decision fatigue. Translated the vision into PRD-style requirements and user stories with clear success criteria.</p>
+            </div>
+          </div>
+          <div class="scope-item">
+            <div class="step-num">02</div>
+            <div>
+              <h4>Household and onboarding strategy</h4>
+              <p>Shaped flows around food profiles, household setup, inventory capture, preferences, allergies, and lower-friction discovery — balancing depth of data with activation speed.</p>
+            </div>
+          </div>
+          <div class="scope-item">
+            <div class="step-num">03</div>
+            <div>
+              <h4>Data model and recipe-matching logic</h4>
+              <p>Mapped household profiles, pantry inventory, restrictions, preferences, and recipe constraints into backend-ready decision logic.</p>
+            </div>
+          </div>
+          <div class="scope-item">
+            <div class="step-num">04</div>
+            <div>
+              <h4>AI cost and product tier thinking</h4>
+              <p>Worked through OpenAI API usage, per-call cost, inventory-size considerations, token prioritization, and premium pricing logic to connect AI features to unit economics.</p>
+            </div>
+          </div>
+          <div class="scope-item">
+            <div class="step-num">05</div>
+            <div>
+              <h4>Analytics and experimentation framework</h4>
+              <p>Defined the activation funnel, key events, KPIs, and three prioritized product experiments with hypotheses, primary metrics, and decision rules.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PROBLEM ── -->
+  <section id="problem">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="tag">Problem framing</div>
+        <h2>The problem was not "meal planning."</h2>
+        <p>The deeper problem is household food visibility. People overbuy, forget items, and make last-minute decisions because the kitchen has no memory layer. Kinji is a system that gives the kitchen a memory.</p>
+      </div>
+      <div class="problem-cards">
+        <div class="problem-card">
+          <div class="icon" style="background:var(--amber-bg);">🤔</div>
+          <div class="tag" style="margin-bottom:14px">User problem</div>
+          <h3>Decision fatigue</h3>
+          <p>Users stare at available food but still do not know what to cook. Kinji reframes the question from "what do I want?" to "what should I use first?"</p>
+        </div>
+        <div class="problem-card" style="background:var(--ink);border-color:rgba(255,255,255,.06);">
+          <div class="icon" style="background:rgba(245,163,12,.15);">📦</div>
+          <div class="tag dark" style="margin-bottom:14px">Data problem</div>
+          <h3 style="color:#fff">Invisible inventory</h3>
+          <p style="color:rgba(255,255,255,.5)">Food exists across fridge, freezer, pantry, receipts, habits, and expiry windows. The product challenge is making that invisible mess usable and actionable.</p>
+        </div>
+        <div class="problem-card">
+          <div class="icon" style="background:var(--surface-2);">📈</div>
+          <div class="tag" style="margin-bottom:14px">Business problem</div>
+          <h3>Value must be visible</h3>
+          <p>For subscription conversion, Kinji has to prove savings, not just generate recipes. The product needs a measurable value loop that users can feel.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── ONBOARDING ── -->
+  <section id="onboarding">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="tag">Onboarding</div>
+        <h2>Reduce friction before demanding precision.</h2>
+        <p>Kinji's onboarding needed to collect enough data to personalize recommendations without making setup feel like admin work. The strategy: minimum viable inventory, immediate payoff.</p>
+      </div>
+
+      <div class="onboarding-screens">
+        <div class="ob-card">
+          <div class="ob-card-head">
+            <div class="num-row"><span class="step-num">01</span></div>
+            <h3>Food profile</h3>
+            <p>Capture cooking style, dietary preferences, restrictions, and goals without overwhelming the user upfront.</p>
+          </div>
+          <div class="ob-choices">
+            <div class="ob-choice">Budget-conscious</div>
+            <div class="ob-choice">Fast weeknight meals</div>
+            <div class="ob-choice">Reduce food waste</div>
+            <div class="ob-cta">Continue →</div>
+          </div>
+        </div>
+        <div class="ob-card">
+          <div class="ob-card-head">
+            <div class="num-row"><span class="step-num">02</span></div>
+            <h3>Household setup</h3>
+            <p>Support family, roommate, couple, and shared-household profiles without forcing role complexity too early.</p>
+          </div>
+          <div class="ob-choices">
+            <div class="ob-choice">Invite household members</div>
+            <div class="ob-choice">Add dietary restrictions</div>
+            <div class="ob-choice">Set shared roles</div>
+            <div class="ob-cta">Create household →</div>
+          </div>
+        </div>
+        <div class="ob-card">
+          <div class="ob-card-head">
+            <div class="num-row"><span class="step-num">03</span></div>
+            <h3>Inventory setup</h3>
+            <p>Start with just enough pantry context to produce immediate, useful meal recommendations.</p>
+          </div>
+          <div class="ob-choices">
+            <div class="ob-choice">Scan items</div>
+            <div class="ob-choice">Upload a receipt</div>
+            <div class="ob-choice">Add manually</div>
+            <div class="ob-cta">Generate first meal →</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-strip">
+        <h3>Activation logic — target path to first value</h3>
+        <div class="flow-steps">
+          <div class="flow-step">
+            <span class="step-num">01</span>
+            <strong>Sign up</strong>
+            <small>Account created, food profile started</small>
+          </div>
+          <div class="flow-connector">→</div>
+          <div class="flow-step">
+            <span class="step-num">02</span>
+            <strong>Minimum pantry</strong>
+            <small>Small first inventory capture — 5–10 items</small>
+          </div>
+          <div class="flow-connector">→</div>
+          <div class="flow-step">
+            <span class="step-num">03</span>
+            <strong>First useful meal</strong>
+            <small>Immediate recommendation using items the user already has</small>
+          </div>
+          <div class="flow-connector">→</div>
+          <div class="flow-step">
+            <span class="step-num">04</span>
+            <strong>Value proven</strong>
+            <small>Expiry warning acted on, or item confirmed used</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── AI SYSTEM ── -->
+  <section id="ai-system">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="tag">AI System</div>
+        <h2>From vague preference to structured recipe output.</h2>
+        <p>The work was not simply "use AI." The product needed structured inputs, safety checks, household context, and cost-aware prompt logic that could scale across a freemium tier model.</p>
+      </div>
+
+      <div class="pipeline-grid">
+        <div class="pipe-card">
+          <div class="pipe-step">1</div>
+          <h4>User intent</h4>
+          <p>"Something quick, warming, and not too heavy tonight."</p>
+        </div>
+        <div class="pipe-card">
+          <div class="pipe-step">2</div>
+          <h4>Household context</h4>
+          <p>Dietary restrictions, allergies, member preferences, cuisine direction, and role-based settings.</p>
+        </div>
+        <div class="pipe-card">
+          <div class="pipe-step">3</div>
+          <h4>Pantry constraints</h4>
+          <p>Available items, expiry risk, storage type, substitutions, and items to prioritize by expiry.</p>
+        </div>
+        <div class="pipe-card">
+          <div class="pipe-step">4</div>
+          <h4>AI structured output</h4>
+          <p>Recipe, substitutions, allergen flags, use-soon rationale, and estimated savings signal.</p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card card-dark">
+          <div class="tag dark" style="margin-bottom:16px">Safety design</div>
+          <h3 style="color:#fff">Allergen warning, not hard blocking</h3>
+          <p>The app flags recipes that conflict with household restrictions while preserving user autonomy. This makes the product safer without making it rigid or paternalistic.</p>
+        </div>
+        <div class="card card-amber">
+          <div class="tag" style="margin-bottom:16px">Cost thinking</div>
+          <h3>AI unit economics per household</h3>
+          <p>Prompt efficiency, inventory prioritization, and tiered usage limits are product decisions — not just engineering ones. I worked through token cost modeling to inform the pricing tier design.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── DATA MODEL ── -->
+  <section id="data-model">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="tag">Data Model</div>
+        <h2>The data model behind the product.</h2>
+        <p>This section is built for Product Analyst roles: it shows how the product becomes measurable, debuggable, and scalable — by mapping every core data object to both product logic and analytics use.</p>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Data object</th>
+              <th>Core fields</th>
+              <th>Product use</th>
+              <th>Analytics use</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Household</strong></td>
+              <td>Type, members, roles, shared settings, invite code</td>
+              <td>Coordinates cooking decisions across family, roommate, couple, or shared kitchen contexts.</td>
+              <td>Segmentation by household type, role complexity, and collaboration adoption.</td>
+            </tr>
+            <tr>
+              <td><strong>User profile</strong></td>
+              <td>Preferences, restrictions, allergies, cuisine interests, budget goal</td>
+              <td>Personalizes recommendations and warns when recipes conflict with user needs.</td>
+              <td>Tracks activation by persona and links preferences to engagement frequency.</td>
+            </tr>
+            <tr>
+              <td><strong>Inventory item</strong></td>
+              <td>Name, category, quantity, storage location, date added, expiry estimate</td>
+              <td>Powers "use soon," recipe matching, substitution, and waste prevention.</td>
+              <td>Measures item usage, waste-risk conversion, expiry misses, and inventory freshness.</td>
+            </tr>
+            <tr>
+              <td><strong>Recipe recommendation</strong></td>
+              <td>Ingredients used, substitutions, restriction flags, prep time, cuisine direction</td>
+              <td>Creates the immediate payoff from pantry setup.</td>
+              <td>Connects recommendations to repeat usage, pantry depletion, and saved items.</td>
+            </tr>
+            <tr>
+              <td><strong>Product event</strong></td>
+              <td>Pantry upload, recipe generated, item used, warning shown, household invite</td>
+              <td>Shows where users progress, stall, or receive value.</td>
+              <td>Activation funnel, retention analysis, cohort tracking, and experiment readouts.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── ANALYTICS ── -->
+  <section id="analytics">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="tag">Analytics</div>
+        <h2>Analytics framework: prove the product is working.</h2>
+        <p>The strongest version of this portfolio shows how product decisions translate into measurable user value — from first session to subscription conversion.</p>
+      </div>
+
+      <div class="analytics-grid">
+        <div class="card">
+          <h3>Activation funnel</h3>
+          <p style="font-size:14px;margin-bottom:0">Where I would instrument the first critical drop-offs.</p>
+          <div class="funnel-bar-group">
+            <div class="funnel-row">
+              <span class="funnel-label">Account created</span>
+              <div class="funnel-track"><div class="funnel-fill top" style="width:100%"></div></div>
+              <span class="funnel-pct">100%</span>
+            </div>
+            <div class="funnel-row">
+              <span class="funnel-label">Food profile</span>
+              <div class="funnel-track"><div class="funnel-fill" style="width:82%"></div></div>
+              <span class="funnel-pct">82%</span>
+            </div>
+            <div class="funnel-row">
+              <span class="funnel-label">Inventory started</span>
+              <div class="funnel-track"><div class="funnel-fill" style="width:68%"></div></div>
+              <span class="funnel-pct">68%</span>
+            </div>
+            <div class="funnel-row">
+              <span class="funnel-label">First recipe</span>
+              <div class="funnel-track"><div class="funnel-fill" style="width:54%"></div></div>
+              <span class="funnel-pct">54%</span>
+            </div>
+            <div class="funnel-row">
+              <span class="funnel-label">Week 2 return</span>
+              <div class="funnel-track"><div class="funnel-fill" style="width:34%"></div></div>
+              <span class="funnel-pct">34%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-dark">
+          <h3 style="color:#fff">Events that matter</h3>
+          <p style="font-size:14px;margin-bottom:20px">The instrumentation layer I would define before any A/B test.</p>
+          <div style="display:grid;gap:14px">
+            <div>
+              <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--amber);margin-bottom:6px">Activation</div>
+              <p style="font-size:14px;color:rgba(255,255,255,.55);margin:0">Pantry setup completed · First recipe generated</p>
+            </div>
+            <div>
+              <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--amber);margin-bottom:6px">Value</div>
+              <p style="font-size:14px;color:rgba(255,255,255,.55);margin:0">Expiring item used · Duplicate purchase avoided · Estimated savings shown</p>
+            </div>
+            <div>
+              <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--amber);margin-bottom:6px">Safety</div>
+              <p style="font-size:14px;color:rgba(255,255,255,.55);margin:0">Allergen warning shown · Warning acknowledged · Substitution accepted</p>
+            </div>
+            <div>
+              <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--amber);margin-bottom:6px">Retention</div>
+              <p style="font-size:14px;color:rgba(255,255,255,.55);margin:0">Recurring weekly meal planning · Ongoing inventory management</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>KPI</th>
+              <th>Definition</th>
+              <th>Why it matters</th>
+              <th>Product lever</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Time to First Useful Meal</strong></td>
+              <td>Time from account creation to first recipe using at least one inventory item.</td>
+              <td>Measures whether onboarding creates immediate payoff.</td>
+              <td>Reduce required inputs; show starter pantry shortcuts.</td>
+            </tr>
+            <tr>
+              <td><strong>Waste-Risk Conversion</strong></td>
+              <td>Share of expiring items used before estimated expiry.</td>
+              <td>Direct measure of waste-reduction value proposition.</td>
+              <td>Improve alerts, recipe ranking, and "use soon" visibility.</td>
+            </tr>
+            <tr>
+              <td><strong>Household Collaboration</strong></td>
+              <td>Share of households adding at least one additional member or role.</td>
+              <td>Signals whether Kinji becomes a shared household habit.</td>
+              <td>Invite flow, role permissions, family-oriented UX.</td>
+            </tr>
+            <tr>
+              <td><strong>AI Cost per Household</strong></td>
+              <td>API cost divided by active households across key usage events.</td>
+              <td>Connects AI product usage to unit economics and tier design.</td>
+              <td>Prompt efficiency, inventory prioritization, usage limits.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── EXPERIMENTS ── -->
+  <section id="experiments">
+    <div class="wrap">
+      <div class="experiment-callout">
+        <h2>The product decision I would test first.</h2>
+        <p>I would test whether delaying mandatory household setup increases activation. The hypothesis: users should experience value first, then configure shared complexity once they trust the product.</p>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Experiment</th>
+              <th>Hypothesis</th>
+              <th>Primary metric</th>
+              <th>Decision rule</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Immediate vs delayed household setup</strong></td>
+              <td>Delaying household setup reduces onboarding abandonment without hurting later household adoption.</td>
+              <td>First recipe generated rate</td>
+              <td>Keep delayed setup if conversion rises without reducing household adoption in Week 4.</td>
+            </tr>
+            <tr>
+              <td><strong>Recipe-first vs inventory-first onboarding</strong></td>
+              <td>A low-effort starter recipe increases perceived value and drives users to complete full setup afterward.</td>
+              <td>Time to First Useful Meal</td>
+              <td>Keep recipe-first if Week 2 return rate is higher with no significant drop in pantry depth.</td>
+            </tr>
+            <tr>
+              <td><strong>Banner warnings vs modal interruptions</strong></td>
+              <td>Banner allergen warnings maintain autonomy while still improving safety awareness.</td>
+              <td>Warning acknowledgement + recipe completion</td>
+              <td>Use banners if completion is higher and warnings are still noticed and logged.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── ARTIFACTS ── -->
+  <section id="artifacts">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="tag">Portfolio artifacts</div>
+        <h2>Evidence, not filler.</h2>
+        <p>This case study is designed to hold real deliverables. These are the artifacts that make it credible to a product, strategy, or analytics hiring team.</p>
+      </div>
+
+      <div class="artifact-strip">
+        <div class="artifact-card">
+          <div class="artifact-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+            </svg>
+          </div>
+          <h4>PRD excerpt</h4>
+          <p>Problem, goals, non-goals, user stories, requirements, and success metrics.</p>
+        </div>
+        <div class="artifact-card">
+          <div class="artifact-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+          </div>
+          <h4>Onboarding flow</h4>
+          <p>Food profile → household setup → inventory capture → first meal delivery.</p>
+        </div>
+        <div class="artifact-card">
+          <div class="artifact-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+              <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+            </svg>
+          </div>
+          <h4>Data model</h4>
+          <p>Household, user, inventory item, recipe recommendation, and event schema.</p>
+        </div>
+        <div class="artifact-card">
+          <div class="artifact-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+              <line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+          </div>
+          <h4>Experiment plan</h4>
+          <p>Hypothesis, metric, segmentation, success criteria, and product decision rule.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="wrap footer-inner">
+    <div class="footer-brand">
+      <img
+        src="https://www.kinji.ai/_next/image?url=%2Fassets%2F1%20Nav%20menu%2Flogo.ai%20(2)%201.png&w=256&q=75"
+        alt="Kinji"
+        style="filter:brightness(0) invert(1);opacity:.7;margin-bottom:12px;"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='block'"
+      />
+      <div class="fallback" style="display:none">kin<span>ji</span> <span style="color:rgba(255,255,255,.4);font-weight:400;font-size:14px">portfolio</span></div>
+      <p>Product analytics case study — built for Product Analyst, Product Manager, and AI product strategy applications.</p>
+    </div>
+    <div class="footer-right">
+      <p>Mayumi Maemura<br>Toronto, Canada<br>Product Analyst · Strategy · AI Product</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
