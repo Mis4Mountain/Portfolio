@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kinji · Product Analytics Case Study</title>
+  <meta name="description" content="Product analytics and strategy case study for Kinji — AI-powered household food intelligence. Covers product ownership, onboarding design, AI systems, data modeling, and experimentation." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Design tokens ── */
+    :root {
+      --bg:            #070810;
+      --amber:         #f5a30c;
+      --amber-2:       #fbbf24;
+
+      /* glass system */
+      --glass:         rgba(255,255,255,0.07);
+      --glass-border:  rgba(255,255,255,0.12);
+      --glass-hover:   rgba(255,255,255,0.11);
+      --glass-strong:  rgba(255,255,255,0.14);
+      --glass-amber:   rgba(245,163,12,0.10);
+      --glass-ab:      rgba(245,163,12,0.22);
+
+      --blur:    blur(20px);
+      --blur-lg: blur(32px);
+
+      /* typography */
+      --fh: 'Syne',    sans-serif;
+      --fb: 'DM Sans', sans-serif;
+
+      /* text */
+      --t:   #ffffff;
+      --t-m: rgba(255,255,255,0.55);
+      --t-d: rgba(255,255,255,0.35);
+
+      /* radii */
+      --r-sm: 10px;
+      --r:    16px;
+      --r-lg: 22px;
+      --r-xl: 28px;
+
+      --max: 1120px;
+      --sg:  0 8px 32px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+    body {
+      font-family: var(--fb);
+      color: var(--t);
+      background: var(--bg);
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+
+    /* ── Background canvas ── */
+    .bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      will-change: transform;
+    }
+    .orb-1 {
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(245,163,12,0.48), transparent 70%);
+      top: -220px; right: -160px;
+      animation: drift1 22s ease-in-out infinite;
+    }
+    .orb-2 {
+      width: 520px; height: 520px;
+      background: radial-gradient(circle, rgba(210,70,30,0.32), transparent 70%);
+      bottom: 12%; left: -160px;
+      animation: drift2 28s ease-in-out infinite;
+    }
+    .orb-3 {
+      width: 420px; height: 420px;
+      background: radial-gradient(circle, rgba(251,191,36,0.22), transparent 70%);
+      top: 48%; left: 38%;
+      animation: drift3 19s ease-in-out infinite;
+    }
+    @keyframes drift1 { 0%,100%{transform:translate(0,0)} 33%{transform:translate(-28px,42px)} 66%{transform:translate(22px,-28px)} }
+    @keyframes drift2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(44px,-48px)} }
+    @keyframes drift3 { 0%,100%{transform:translate(0,0)} 33%{transform:translate(-36px,28px)} 66%{transform:translate(30px,38px)} }
+
+    /* ── Layout ── */
+    .wrap {
+      width: min(var(--max), calc(100% - 48px));
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+    section { padding: 96px 0; }
+
+    /* ── Typography ── */
+    h1,h2,h3,h4 { font-family: var(--fh); line-height: 1.1; letter-spacing: -0.03em; }
+    h1 { font-size: clamp(38px,6vw,70px); font-weight: 800; }
+    h2 { font-size: clamp(26px,4vw,46px); font-weight: 800; margin-bottom: 12px; }
+    h3 { font-size: 19px; font-weight: 700; margin-bottom: 8px; }
+    h4 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    p  { color: var(--t-m); font-size: 16px; line-height: 1.75; }
+
+    /* ── Glass system ── */
+    .glass {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--r-lg);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      box-shadow: var(--sg);
+    }
+    .glass-amber {
+      background: var(--glass-amber);
+      border: 1px solid var(--glass-ab);
+      border-radius: var(--r-lg);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+    }
+
+    /* ── Tag ── */
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 13px;
+      border-radius: 999px;
+      font-family: var(--fh);
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: var(--glass-amber);
+      color: var(--amber-2);
+      border: 1px solid var(--glass-ab);
+      backdrop-filter: blur(8px);
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 24px;
+      border-radius: 999px;
+      font-family: var(--fb);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .2s cubic-bezier(.22,1,.36,1), box-shadow .2s;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-primary {
+      background: var(--amber);
+      color: #06070d;
+      font-weight: 700;
+      box-shadow: 0 4px 20px rgba(245,163,12,0.42);
+    }
+    .btn-primary:hover { box-shadow: 0 8px 32px rgba(245,163,12,0.55); }
+    .btn-ghost {
+      background: var(--glass);
+      color: var(--t);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(8px);
+    }
+    .btn-ghost:hover { background: var(--glass-hover); }
+
+    /* ── Section head ── */
+    .section-head { max-width: 680px; margin-bottom: 52px; }
+    .section-head .tag { margin-bottom: 18px; }
+    .section-head p { font-size: 18px; margin-top: 14px; }
+
+    /* ── Grids ── */
+    .grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+
+    /* ── Step number ── */
+    .step-num {
+      display: inline-grid;
+      place-items: center;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--amber);
+      color: #06070d;
+      font-family: var(--fh);
+      font-size: 13px;
+      font-weight: 800;
+      flex-shrink: 0;
+      box-shadow: 0 0 12px rgba(245,163,12,0.4);
+    }
+
+    /* ── Glow separator ── */
+    .glow-sep {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(245,163,12,0.25) 40%, rgba(245,163,12,0.25) 60%, transparent);
+    }
+
+    /* ── Reveal animations ── */
+    .rv {
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity .65s cubic-bezier(.22,1,.36,1), transform .65s cubic-bezier(.22,1,.36,1);
+    }
+    .rv.vis { opacity: 1; transform: translateY(0); }
+    .rv-d1 { transition-delay: .08s; }
+    .rv-d2 { transition-delay: .16s; }
+    .rv-d3 { transition-delay: .24s; }
+    .rv-d4 { transition-delay: .32s; }
+
+    /* ════════════════════════════════════════
+       HEADER
+    ════════════════════════════════════════ */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(7,8,16,0.72);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 68px;
+      gap: 24px;
+    }
+    .brand img { height: 28px; width: auto; filter: brightness(0) invert(1); }
+    .brand-fallback {
+      font-family: var(--fh);
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.05em;
+      color: var(--t);
+    }
+    .brand-fallback span { color: var(--amber); }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-links a {
+      padding: 7px 13px;
+      border-radius: var(--r-sm);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--t-m);
+      transition: color .15s, background .15s;
+    }
+    .nav-links a:hover { color: var(--t); background: var(--glass); }
+
+    /* ════════════════════════════════════════
+       HERO
+    ════════════════════════════════════════ */
+    .hero { padding: 110px 0 90px; }
+    .hero-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 72px;
+      align-items: center;
+    }
+    .hero-copy h1 { color: var(--t); margin: 20px 0 20px; }
+    .hero-copy > p { font-size: 17px; max-width: 520px; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+
+    .hero-meta { display: flex; gap: 0; margin-top: 40px; }
+    .hero-meta-item {
+      flex: 1;
+      padding: 20px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .hero-meta-item:first-child  { border-radius: var(--r) 0 0 var(--r); }
+    .hero-meta-item:last-child   { border-radius: 0 var(--r) var(--r) 0; }
+    .hero-meta-item + .hero-meta-item { border-left: none; }
+    .hero-meta-item .num {
+      font-family: var(--fh);
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: var(--amber);
+      line-height: 1;
+    }
+    .hero-meta-item .lbl {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--t-d);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-top: 5px;
+    }
+
+    /* App screenshots */
+    .screens-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 10px;
+    }
+    .screen-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      backdrop-filter: blur(8px);
+      transition: transform .3s cubic-bezier(.22,1,.36,1), border-color .3s;
+    }
+    .screen-card:hover { transform: translateY(-4px); border-color: rgba(245,163,12,0.32); }
+    .screen-card.wide { grid-column: span 2; }
+    .screen-card img { width: 100%; height: auto; display: block; }
+    .screen-label {
+      padding: 10px 14px;
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--t-d);
+    }
+
+    /* ════════════════════════════════════════
+       OWNERSHIP
+    ════════════════════════════════════════ */
+    .ownership-grid {
+      display: grid;
+      grid-template-columns: 2fr 3fr;
+      gap: 24px;
+      align-items: start;
+    }
+    .ownership-lead {
+      border-radius: var(--r-xl);
+      padding: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+    .ownership-lead::after {
+      content: '';
+      position: absolute;
+      width: 240px; height: 240px;
+      right: -70px; bottom: -70px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(245,163,12,0.35), transparent 70%);
+      pointer-events: none;
+      filter: blur(40px);
+    }
+    .ownership-lead h2 { font-size: 26px; margin-bottom: 14px; }
+
+    .scope-list { display: grid; gap: 12px; }
+    .scope-item {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      padding: 20px 22px;
+      transition: background .25s, border-color .25s, transform .22s cubic-bezier(.22,1,.36,1);
+    }
+    .scope-item:hover {
+      background: var(--glass-hover);
+      border-color: rgba(255,255,255,0.2);
+      transform: translateX(4px);
+    }
+    .scope-item h4 { font-size: 15px; color: var(--t); }
+    .scope-item p  { font-size: 14px; }
+
+    /* ════════════════════════════════════════
+       PROBLEM
+    ════════════════════════════════════════ */
+    .problem-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+    .problem-card {
+      border-radius: var(--r-xl);
+      padding: 32px;
+      transition: transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s;
+    }
+    .problem-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 24px 64px rgba(0,0,0,0.45);
+    }
+    .problem-card .icon {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 20px;
+      font-size: 24px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+    }
+    .problem-card h3 { font-size: 18px; color: var(--t); }
+    .problem-card p  { font-size: 15px; margin-top: 10px; }
+
+    /* ════════════════════════════════════════
+       ONBOARDING
+    ════════════════════════════════════════ */
+    .onboarding-screens {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .ob-card {
+      border-radius: var(--r-xl);
+      overflow: hidden;
+      transition: transform .3s cubic-bezier(.22,1,.36,1);
+    }
+    .ob-card:hover { transform: translateY(-5px); }
+    .ob-card-head { padding: 24px 24px 0; }
+    .ob-card-head .num-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .ob-card-head h3 { font-size: 17px; color: var(--t); }
+    .ob-card-head p  { font-size: 14px; margin-top: 6px; }
+    .ob-choices { padding: 16px 24px 24px; display: flex; flex-direction: column; gap: 8px; }
+    .ob-choice {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: var(--r-sm);
+      padding: 11px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--t);
+    }
+    .ob-cta {
+      background: var(--amber);
+      color: #06070d;
+      padding: 12px 14px;
+      border-radius: var(--r-sm);
+      font-family: var(--fh);
+      font-size: 13px;
+      font-weight: 800;
+      text-align: center;
+      margin-top: 4px;
+      box-shadow: 0 4px 18px rgba(245,163,12,0.38);
+    }
+
+    .flow-strip { padding: 30px 34px; }
+    .flow-strip h3 { font-size: 16px; color: var(--t); margin-bottom: 22px; }
+    .flow-steps { display: flex; gap: 0; align-items: stretch; overflow-x: auto; }
+    .flow-step {
+      flex: 1;
+      min-width: 140px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--r);
+      padding: 18px;
+      backdrop-filter: blur(8px);
+    }
+    .flow-step strong { display: block; font-size: 14px; font-weight: 700; margin-top: 10px; color: var(--t); }
+    .flow-step small  { display: block; font-size: 12px; color: var(--t-m); margin-top: 4px; }
+    .flow-connector {
+      display: grid;
+      place-items: center;
+      padding: 0 12px;
+      color: var(--amber);
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    /* ════════════════════════════════════════
+       AI SYSTEM
+    ════════════════════════════════════════ */
+    .pipeline-grid {
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .pipe-card {
+      border-radius: var(--r-xl);
+      padding: 26px;
+      transition: transform .3s cubic-bezier(.22,1,.36,1), border-color .3s;
+    }
+    .pipe-card:hover { transform: translateY(-5px); border-color: rgba(245,163,12,0.3); }
+    .pipe-card .pipe-step {
+      display: inline-grid;
+      place-items: center;
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      background: var(--amber);
+      color: #06070d;
+      font-family: var(--fh);
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 16px;
+    }
+    .pipe-card h4 { font-size: 15px; color: var(--t); }
+    .pipe-card p  { font-size: 13px; margin-top: 6px; }
+
+    /* ════════════════════════════════════════
+       TABLE
+    ════════════════════════════════════════ */
+    .table-wrap {
+      border-radius: var(--r-xl);
+      overflow: hidden;
+      border: 1px solid var(--glass-border);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      background: var(--glass);
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      background: rgba(245,163,12,0.12);
+      color: var(--amber-2);
+      font-family: var(--fh);
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      padding: 16px 22px;
+      text-align: left;
+      border-bottom: 1px solid var(--glass-ab);
+    }
+    tbody tr { border-bottom: 1px solid rgba(255,255,255,0.055); }
+    tbody tr:last-child { border-bottom: none; }
+    tbody td { padding: 18px 22px; font-size: 14px; color: var(--t-m); vertical-align: top; }
+    tbody td strong { color: var(--t); font-weight: 700; }
+    tbody tr:hover td { background: rgba(255,255,255,0.04); }
+
+    /* ════════════════════════════════════════
+       ANALYTICS
+    ════════════════════════════════════════ */
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    .funnel-wrap { padding: 28px; }
+    .funnel-wrap h3 { color: var(--t); }
+    .funnel-wrap > p { font-size: 14px; margin-bottom: 0; }
+    .funnel-bar-group { display: grid; gap: 14px; margin-top: 22px; }
+    .funnel-row {
+      display: grid;
+      grid-template-columns: 160px 1fr 52px;
+      align-items: center;
+      gap: 12px;
+    }
+    .funnel-label { font-size: 13px; font-weight: 500; color: var(--t-m); }
+    .funnel-track {
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.06);
+      overflow: hidden;
+    }
+    .funnel-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.22);
+      transition: width .8s cubic-bezier(.22,1,.36,1);
+    }
+    .funnel-fill.top {
+      background: linear-gradient(90deg, var(--amber), var(--amber-2));
+      box-shadow: 0 0 10px rgba(245,163,12,0.45);
+    }
+    .funnel-pct { font-size: 13px; font-weight: 700; color: var(--t); text-align: right; }
+
+    .events-card { padding: 28px; }
+    .events-card h3 { color: var(--t); }
+    .events-card > p { font-size: 14px; margin-bottom: 20px; }
+    .event-group { margin-top: 18px; }
+    .event-label {
+      font-family: var(--fh);
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--amber);
+      margin-bottom: 6px;
+    }
+    .event-group p { font-size: 14px; }
+
+    /* ════════════════════════════════════════
+       EXPERIMENTS
+    ════════════════════════════════════════ */
+    .experiment-callout {
+      border-radius: var(--r-xl);
+      padding: 50px;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .experiment-callout::before {
+      content: '';
+      position: absolute;
+      width: 380px; height: 380px;
+      right: -90px; top: -90px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(245,163,12,0.28), transparent 65%);
+      pointer-events: none;
+      filter: blur(50px);
+    }
+    .experiment-callout h2 { position: relative; }
+    .experiment-callout p  { font-size: 17px; max-width: 680px; margin-top: 14px; position: relative; }
+
+    /* ════════════════════════════════════════
+       ARTIFACTS
+    ════════════════════════════════════════ */
+    .artifact-strip { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+    .artifact-card {
+      border-radius: var(--r-xl);
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: transform .3s cubic-bezier(.22,1,.36,1), border-color .3s;
+    }
+    .artifact-card:hover { transform: translateY(-5px); border-color: rgba(245,163,12,0.3); }
+    .artifact-icon {
+      width: 44px; height: 44px;
+      border-radius: var(--r-sm);
+      display: grid;
+      place-items: center;
+      background: var(--glass-amber);
+      border: 1px solid var(--glass-ab);
+      color: var(--amber);
+    }
+    .artifact-card h4 { font-size: 15px; color: var(--t); }
+    .artifact-card p  { font-size: 13px; }
+
+    /* ════════════════════════════════════════
+       FOOTER
+    ════════════════════════════════════════ */
+    footer {
+      padding: 60px 0;
+      border-top: 1px solid var(--glass-border);
+      background: rgba(7,8,16,0.82);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      position: relative;
+      z-index: 1;
+    }
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+    .footer-brand img { height: 24px; width: auto; filter: brightness(0) invert(1); opacity: .6; margin-bottom: 12px; }
+    .footer-brand .fallback {
+      font-family: var(--fh);
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--t);
+      letter-spacing: -0.04em;
+      margin-bottom: 10px;
+    }
+    .footer-brand .fallback span { color: var(--amber); }
+    .footer-brand p { font-size: 14px; color: var(--t-d); }
+    .footer-right { text-align: right; }
+    .footer-right p { font-size: 13px; color: var(--t-d); line-height: 1.9; }
+
+    /* ════════════════════════════════════════
+       RESPONSIVE
+    ════════════════════════════════════════ */
+    @media (max-width: 1024px) {
+      .hero-inner, .ownership-grid { grid-template-columns: 1fr; }
+      .hero-inner { gap: 48px; }
+      .screens-grid .screen-card.wide { grid-column: span 1; }
+    }
+    @media (max-width: 768px) {
+      section { padding: 64px 0; }
+      .problem-cards, .onboarding-screens, .pipeline-grid,
+      .analytics-grid, .artifact-strip, .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .flow-steps { flex-direction: column; }
+      .flow-connector { transform: rotate(90deg); }
+      .nav-links { display: none; }
+      .funnel-row { grid-template-columns: 1fr 52px; }
+      .funnel-label { display: none; }
+      .hero-meta { flex-direction: column; }
+      .hero-meta-item:first-child { border-radius: var(--r) var(--r) 0 0; }
+      .hero-meta-item:last-child  { border-radius: 0 0 var(--r) var(--r); }
+      .hero-meta-item + .hero-meta-item { border-left: 1px solid var(--glass-border); border-top: none; }
+      .experiment-callout { padding: 32px; }
+    }
+    @media print {
+      .bg-canvas { display: none; }
+      header, .hero-actions { display: none; }
+      body { background: #fff; color: #000; }
+      section { padding: 32px 0; }
+      .glass, .glass-amber { background: #f4f4f4 !important; backdrop-filter: none !important; border-color: #ddd !important; }
+      h1,h2,h3,h4,p,td,th { color: #000 !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Animated background ── -->
+<div class="bg-canvas" aria-hidden="true">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<!-- ── HEADER ── -->
+<header>
+  <nav class="wrap">
+    <a class="brand" href="#top">
+      <img
+        src="https://www.kinji.ai/_next/image?url=%2Fassets%2F1%20Nav%20menu%2Flogo.ai%20(2)%201.png&w=256&q=75"
+        alt="Kinji"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='block'"
+      />
+      <span class="brand-fallback" style="display:none">kin<span>ji</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="#ownership">Ownership</a>
+      <a href="#onboarding">Onboarding</a>
+      <a href="#ai-system">AI System</a>
+      <a href="#data-model">Data Model</a>
+      <a href="#analytics">Analytics</a>
+      <a href="#artifacts">Artifacts</a>
+    </div>
+  </nav>
+</header>
+
+<main id="top">
+
+  <!-- ── HERO ── -->
+  <section class="hero">
+    <div class="wrap hero-inner">
+      <div class="hero-copy">
+        <div class="tag rv">Product Analytics · AI Product · Strategy</div>
+        <h1 class="rv rv-d1">Household food intelligence, built as a product system.</h1>
+        <p class="rv rv-d2">Kinji turns a messy kitchen problem — food waste, decision fatigue, invisible inventory — into a measurable product. This case study covers the product work I owned: vision, onboarding design, household data modeling, AI recipe logic, KPI design, and experimentation planning.</p>
+        <div class="hero-actions rv rv-d3">
+          <a class="btn btn-primary" href="#ownership">My ownership</a>
+          <a class="btn btn-ghost" href="#analytics">See analytics framework</a>
+        </div>
+        <div class="hero-meta rv rv-d4">
+          <div class="hero-meta-item">
+            <div class="num">5</div>
+            <div class="lbl">Product areas owned</div>
+          </div>
+          <div class="hero-meta-item">
+            <div class="num">3</div>
+            <div class="lbl">Experiments defined</div>
+          </div>
+          <div class="hero-meta-item">
+            <div class="num">4</div>
+            <div class="lbl">Core KPIs designed</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-screens rv rv-d2">
+        <div class="screens-grid">
+          <div class="screen-card wide">
+            <img
+              src="https://www.kinji.ai/assets/4%20Kinji%20Features/Homepage.png"
+              alt="Kinji home screen — Tonight's smart meal suggestions"
+              loading="eager"
+            />
+            <div class="screen-label">Home · smart meal suggestions</div>
+          </div>
+          <div class="screen-card">
+            <img
+              src="https://www.kinji.ai/assets/4%20Kinji%20Features/Inventory.png"
+              alt="Kinji pantry inventory"
+              loading="eager"
+            />
+            <div class="screen-label">Pantry inventory</div>
+          </div>
+          <div class="screen-card">
+            <img
+              src="https://www.kinji.ai/assets/4%20Kinji%20Features/recipe.png"
+              alt="Kinji AI recipe generation"
+              loading="eager"
+            />
+            <div class="screen-label">AI recipe generation</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="glow-sep"></div>
+
+  <!-- ── OWNERSHIP ── -->
+  <section id="ownership">
+    <div class="wrap">
+      <div class="ownership-grid">
+        <div class="ownership-lead glass-amber rv">
+          <h2>What I was responsible for</h2>
+          <p>My contribution sits at the intersection of product strategy and analytical execution — translating a household food problem into structured requirements, data objects, user flows, and measurable outcomes.</p>
+        </div>
+        <div class="scope-list">
+          <div class="scope-item glass rv">
+            <div class="step-num">01</div>
+            <div>
+              <h4>Product vision and requirements</h4>
+              <p>Defined Kinji around waste reduction, grocery savings, and decision fatigue. Translated the vision into PRD-style requirements and user stories with clear success criteria.</p>
+            </div>
+          </div>
+          <div class="scope-item glass rv rv-d1">
+            <div class="step-num">02</div>
+            <div>
+              <h4>Household and onboarding strategy</h4>
+              <p>Shaped flows around food profiles, household setup, inventory capture, preferences, allergies, and lower-friction discovery — balancing depth of data with activation speed.</p>
+            </div>
+          </div>
+          <div class="scope-item glass rv rv-d2">
+            <div class="step-num">03</div>
+            <div>
+              <h4>Data model and recipe-matching logic</h4>
+              <p>Mapped household profiles, pantry inventory, restrictions, preferences, and recipe constraints into backend-ready decision logic.</p>
+            </div>
+          </div>
+          <div class="scope-item glass rv rv-d3">
+            <div class="step-num">04</div>
+            <div>
+              <h4>AI cost and product tier thinking</h4>
+              <p>Worked through OpenAI API usage, per-call cost, inventory-size considerations, token prioritization, and premium pricing logic to connect AI features to unit economics.</p>
+            </div>
+          </div>
+          <div class="scope-item glass rv rv-d4">
+            <div class="step-num">05</div>
+            <div>
+              <h4>Analytics and experimentation framework</h4>
+              <p>Defined the activation funnel, key events, KPIs, and three prioritized product experiments with hypotheses, primary metrics, and decision rules.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="glow-sep"></div>
+
+  <!-- ── PROBLEM ── -->
+  <section id="problem">
+    <div class="wrap">
+      <div class="section-head rv">
+        <div class="tag">Problem framing</div>
+        <h2>The problem was not "meal planning."</h2>
+        <p>The deeper problem is household food visibility. People overbuy, forget items, and make last-minute decisions because the kitchen has no memory layer. Kinji is a system that gives the kitchen a memory.</p>
+      </div>
+      <div class="problem-cards">
+        <div class="problem-card glass rv">
+          <div class="icon">🤔</div>
+          <div class="tag" style="margin-bottom:14px">User problem</div>
+          <h3>Decision fatigue</h3>
+          <p>Users stare at available food but still do not know what to cook. Kinji reframes the question from "what do I want?" to "what should I use first?"</p>
+        </div>
+        <div class="problem-card glass-amber rv rv-d1">
+          <div class="icon">📦</div>
+          <div class="tag" style="margin-bottom:14px">Data problem</div>
+          <h3>Invisible inventory</h3>
+          <p>Food exists across fridge, freezer, pantry, receipts, habits, and expiry windows. The product challenge is making that invisible mess usable and actionable.</p>
+        </div>
+        <div class="problem-card glass rv rv-d2">
+          <div class="icon">📈</div>
+          <div class="tag" style="margin-bottom:14px">Business problem</div>
+          <h3>Value must be visible</h3>
+          <p>For subscription conversion, Kinji has to prove savings, not just generate recipes. The product needs a measurable value loop that users can feel.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="glow-sep"></div>
+
+  <!-- ── ONBOARDING ── -->
+  <section id="onboarding">
+    <div class="wrap">
+      <div class="section-head rv">
+        <div class="tag">Onboarding</div>
+        <h2>Reduce friction before demanding precision.</h2>
+        <p>Kinji's onboarding needed to collect enough data to personalize recommendations without making setup feel like admin work. The strategy: minimum viable inventory, immediate payoff.</p>
+      </div>
+
+      <div class="onboarding-screens">
+        <div class="ob-card glass rv">
+          <div class="ob-card-head">
+            <div class="num-row"><span class="step-num">01</span></div>
+            <h3>Food profile</h3>
+            <p>Capture cooking style, dietary preferences, restrictions, and goals without overwhelming the user upfront.</p>
+          </div>
+          <div class="ob-choices">
+            <div class="ob-choice">Budget-conscious</div>
+            <div class="ob-choice">Fast weeknight meals</div>
+            <div class="ob-choice">Reduce food waste</div>
+            <div class="ob-cta">Continue →</div>
+          </div>
+        </div>
+        <div class="ob-card glass rv rv-d1">
+          <div class="ob-card-head">
+            <div class="num-row"><span class="step-num">02</span></div>
+            <h3>Household setup</h3>
+            <p>Support family, roommate, couple, and shared-household profiles without forcing role complexity too early.</p>
+          </div>
+          <div class="ob-choices">
+            <div class="ob-choice">Invite household members</div>
+            <div class="ob-choice">Add dietary restrictions</div>
+            <div class="ob-choice">Set shared roles</div>
+            <div class="ob-cta">Create household →</div>
+          </div>
+        </div>
+        <div class="ob-card glass rv rv-d2">
+          <div class="ob-card-head">
+            <div class="num-row"><span class="step-num">03</span></div>
+            <h3>Inventory setup</h3>
+            <p>Start with just enough pantry context to produce immediate, useful meal recommendations.</p>
+          </div>
+          <div class="ob-choices">
+            <div class="ob-choice">Scan items</div>
+            <div class="ob-choice">Upload a receipt</div>
+            <div class="ob-choice">Add manually</div>
+            <div class="ob-cta">Generate first meal →</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-strip glass rv">
+        <h3>Activation logic — target path to first value</h3>
+        <div class="flow-steps">
+          <div class="flow-step">
+            <span class="step-num">01</span>
+            <strong>Sign up</strong>
+            <small>Account created, food profile started</small>
+          </div>
+          <div class="flow-connector">→</div>
+          <div class="flow-step">
+            <span class="step-num">02</span>
+            <strong>Minimum pantry</strong>
+            <small>Small first inventory capture — 5–10 items</small>
+          </div>
+          <div class="flow-connector">→</div>
+          <div class="flow-step">
+            <span class="step-num">03</span>
+            <strong>First useful meal</strong>
+            <small>Immediate recommendation using items the user already has</small>
+          </div>
+          <div class="flow-connector">→</div>
+          <div class="flow-step">
+            <span class="step-num">04</span>
+            <strong>Value proven</strong>
+            <small>Expiry warning acted on, or item confirmed used</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="glow-sep"></div>
+
+  <!-- ── AI SYSTEM ── -->
+  <section id="ai-system">
+    <div class="wrap">
+      <div class="section-head rv">
+        <div class="tag">AI System</div>
+        <h2>From vague preference to structured recipe output.</h2>
+        <p>The work was not simply "use AI." The product needed structured inputs, safety checks, household context, and cost-aware prompt logic that could scale across a freemium tier model.</p>
+      </div>
+
+      <div class="pipeline-grid">
+        <div class="pipe-card glass rv">
+          <div class="pipe-step">1</div>
+          <h4>User intent</h4>
+          <p>"Something quick, warming, and not too heavy tonight."</p>
+        </div>
+        <div class="pipe-card glass rv rv-d1">
+          <div class="pipe-step">2</div>
+          <h4>Household context</h4>
+          <p>Dietary restrictions, allergies, member preferences, cuisine direction, and role-based settings.</p>
+        </div>
+        <div class="pipe-card glass rv rv-d2">
+          <div class="pipe-step">3</div>
+          <h4>Pantry constraints</h4>
+          <p>Available items, expiry risk, storage type, substitutions, and items to prioritize by expiry.</p>
+        </div>
+        <div class="pipe-card glass rv rv-d3">
+          <div class="pipe-step">4</div>
+          <h4>AI structured output</h4>
+          <p>Recipe, substitutions, allergen flags, use-soon rationale, and estimated savings signal.</p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="glass rv" style="padding:28px">
+          <div class="tag" style="margin-bottom:16px">Safety design</div>
+          <h3>Allergen warning, not hard blocking</h3>
+          <p style="margin-top:10px">The app flags recipes that conflict with household restrictions while preserving user autonomy. This makes the product safer without making it rigid or paternalistic.</p>
+        </div>
+        <div class="glass-amber rv rv-d1" style="padding:28px;border-radius:var(--r-lg)">
+          <div class="tag" style="margin-bottom:16px">Cost thinking</div>
+          <h3>AI unit economics per household</h3>
+          <p style="margin-top:10px">Prompt efficiency, inventory prioritization, and tiered usage limits are product decisions — not just engineering ones. I worked through token cost modeling to inform the pricing tier design.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="glow-sep"></div>
+
+  <!-- ── DATA MODEL ── -->
+  <section id="data-model">
+    <div class="wrap">
+      <div class="section-head rv">
+        <div class="tag">Data Model</div>
+        <h2>The data model behind the product.</h2>
+        <p>This section is built for Product Analyst roles: it shows how the product becomes measurable, debuggable, and scalable — by mapping every core data object to both product logic and analytics use.</p>
+      </div>
+
+      <div class="table-wrap rv">
+        <table>
+          <thead>
+            <tr>
+              <th>Data object</th>
+              <th>Core fields</th>
+              <th>Product use</th>
+              <th>Analytics use</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Household</strong></td>
+              <td>Type, members, roles, shared settings, invite code</td>
+              <td>Coordinates cooking decisions across family, roommate, couple, or shared kitchen contexts.</td>
+              <td>Segmentation by household type, role complexity, and collaboration adoption.</td>
+            </tr>
+            <tr>
+              <td><strong>User profile</strong></td>
+              <td>Preferences, restrictions, allergies, cuisine interests, budget goal</td>
+              <td>Personalizes recommendations and warns when recipes conflict with user needs.</td>
+              <td>Tracks activation by persona and links preferences to engagement frequency.</td>
+            </tr>
+            <tr>
+              <td><strong>Inventory item</strong></td>
+              <td>Name, category, quantity, storage location, date added, expiry estimate</td>
+              <td>Powers "use soon," recipe matching, substitution, and waste prevention.</td>
+              <td>Measures item usage, waste-risk conversion, expiry misses, and inventory freshness.</td>
+            </tr>
+            <tr>
+              <td><strong>Recipe recommendation</strong></td>
+              <td>Ingredients used, substitutions, restriction flags, prep time, cuisine direction</td>
+              <td>Creates the immediate payoff from pantry setup.</td>
+              <td>Connects recommendations to repeat usage, pantry depletion, and saved items.</td>
+            </tr>
+            <tr>
+              <td><strong>Product event</strong></td>
+              <td>Pantry upload, recipe generated, item used, warning shown, household invite</td>
+              <td>Shows where users progress, stall, or receive value.</td>
+              <td>Activation funnel, retention analysis, cohort tracking, and experiment readouts.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <div class="glow-sep"></div>
+
+  <!-- ── ANALYTICS ── -->
+  <section id="analytics">
+    <div class="wrap">
+      <div class="section-head rv">
+        <div class="tag">Analytics</div>
+        <h2>Analytics framework: prove the product is working.</h2>
+        <p>The strongest version of this portfolio shows how product decisions translate into measurable user value — from first session to subscription conversion.</p>
+      </div>
+
+      <div class="analytics-grid">
+        <div class="glass funnel-wrap rv">
+          <h3>Activation funnel</h3>
+          <p>Where I would instrument the first critical drop-offs.</p>
+          <div class="funnel-bar-group">
+            <div class="funnel-row">
+              <span class="funnel-label">Account created</span>
+              <div class="funnel-track"><div class="funnel-fill top" style="width:100%"></div></div>
+              <span class="funnel-pct">100%</span>
+            </div>
+            <div class="funnel-row">
+              <span class="funnel-label">Food profile</span>
+              <div class="funnel-track"><div class="funnel-fill" style="width:82%"></div></div>
+              <span class="funnel-pct">82%</span>
+            </div>
+            <div class="funnel-row">
+              <span class="funnel-label">Inventory started</span>
+              <div class="funnel-track"><div class="funnel-fill" style="width:68%"></div></div>
+              <span class="funnel-pct">68%</span>
+            </div>
+            <div class="funnel-row">
+              <span class="funnel-label">First recipe</span>
+              <div class="funnel-track"><div class="funnel-fill" style="width:54%"></div></div>
+              <span class="funnel-pct">54%</span>
+            </div>
+            <div class="funnel-row">
+              <span class="funnel-label">Week 2 return</span>
+              <div class="funnel-track"><div class="funnel-fill" style="width:34%"></div></div>
+              <span class="funnel-pct">34%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass events-card rv rv-d1">
+          <h3>Events that matter</h3>
+          <p>The instrumentation layer I would define before any A/B test.</p>
+          <div class="event-group">
+            <div class="event-label">Activation</div>
+            <p>Pantry setup completed · First recipe generated</p>
+          </div>
+          <div class="event-group">
+            <div class="event-label">Value</div>
+            <p>Expiring item used · Duplicate purchase avoided · Estimated savings shown</p>
+          </div>
+          <div class="event-group">
+            <div class="event-label">Safety</div>
+            <p>Allergen warning shown · Warning acknowledged · Substitution accepted</p>
+          </div>
+          <div class="event-group">
+            <div class="event-label">Retention</div>
+            <p>Recurring weekly meal planning · Ongoing inventory management</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap rv">
+        <table>
+          <thead>
+            <tr>
+              <th>KPI</th>
+              <th>Definition</th>
+              <th>Why it matters</th>
+              <th>Product lever</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Time to First Useful Meal</strong></td>
+              <td>Time from account creation to first recipe using at least one inventory item.</td>
+              <td>Measures whether onboarding creates immediate payoff.</td>
+              <td>Reduce required inputs; show starter pantry shortcuts.</td>
+            </tr>
+            <tr>
+              <td><strong>Waste-Risk Conversion</strong></td>
+              <td>Share of expiring items used before estimated expiry.</td>
+              <td>Direct measure of waste-reduction value proposition.</td>
+              <td>Improve alerts, recipe ranking, and "use soon" visibility.</td>
+            </tr>
+            <tr>
+              <td><strong>Household Collaboration</strong></td>
+              <td>Share of households adding at least one additional member or role.</td>
+              <td>Signals whether Kinji becomes a shared household habit.</td>
+              <td>Invite flow, role permissions, family-oriented UX.</td>
+            </tr>
+            <tr>
+              <td><strong>AI Cost per Household</strong></td>
+              <td>API cost divided by active households across key usage events.</td>
+              <td>Connects AI product usage to unit economics and tier design.</td>
+              <td>Prompt efficiency, inventory prioritization, usage limits.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <div class="glow-sep"></div>
+
+  <!-- ── EXPERIMENTS ── -->
+  <section id="experiments">
+    <div class="wrap">
+      <div class="experiment-callout glass-amber rv">
+        <h2>The product decision I would test first.</h2>
+        <p>I would test whether delaying mandatory household setup increases activation. The hypothesis: users should experience value first, then configure shared complexity once they trust the product.</p>
+      </div>
+
+      <div class="table-wrap rv">
+        <table>
+          <thead>
+            <tr>
+              <th>Experiment</th>
+              <th>Hypothesis</th>
+              <th>Primary metric</th>
+              <th>Decision rule</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Immediate vs delayed household setup</strong></td>
+              <td>Delaying household setup reduces onboarding abandonment without hurting later household adoption.</td>
+              <td>First recipe generated rate</td>
+              <td>Keep delayed setup if conversion rises without reducing household adoption in Week 4.</td>
+            </tr>
+            <tr>
+              <td><strong>Recipe-first vs inventory-first onboarding</strong></td>
+              <td>A low-effort starter recipe increases perceived value and drives users to complete full setup afterward.</td>
+              <td>Time to First Useful Meal</td>
+              <td>Keep recipe-first if Week 2 return rate is higher with no significant drop in pantry depth.</td>
+            </tr>
+            <tr>
+              <td><strong>Banner warnings vs modal interruptions</strong></td>
+              <td>Banner allergen warnings maintain autonomy while still improving safety awareness.</td>
+              <td>Warning acknowledgement + recipe completion</td>
+              <td>Use banners if completion is higher and warnings are still noticed and logged.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <div class="glow-sep"></div>
+
+  <!-- ── ARTIFACTS ── -->
+  <section id="artifacts">
+    <div class="wrap">
+      <div class="section-head rv">
+        <div class="tag">Portfolio artifacts</div>
+        <h2>Evidence, not filler.</h2>
+        <p>This case study is designed to hold real deliverables. These are the artifacts that make it credible to a product, strategy, or analytics hiring team.</p>
+      </div>
+
+      <div class="artifact-strip">
+        <div class="artifact-card glass rv">
+          <div class="artifact-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+          </div>
+          <h4>PRD excerpt</h4>
+          <p>Problem, goals, non-goals, user stories, requirements, and success metrics.</p>
+        </div>
+        <div class="artifact-card glass rv rv-d1">
+          <div class="artifact-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+          </div>
+          <h4>Onboarding flow</h4>
+          <p>Food profile → household setup → inventory capture → first meal delivery.</p>
+        </div>
+        <div class="artifact-card glass rv rv-d2">
+          <div class="artifact-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <ellipse cx="12" cy="5" rx="9" ry="3"/>
+              <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+              <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+            </svg>
+          </div>
+          <h4>Data model</h4>
+          <p>Household, user, inventory item, recipe recommendation, and event schema.</p>
+        </div>
+        <div class="artifact-card glass rv rv-d3">
+          <div class="artifact-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10"/>
+              <line x1="12" y1="20" x2="12" y2="4"/>
+              <line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+          </div>
+          <h4>Experiment plan</h4>
+          <p>Hypothesis, metric, segmentation, success criteria, and product decision rule.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="wrap footer-inner">
+    <div class="footer-brand">
+      <img
+        src="https://www.kinji.ai/_next/image?url=%2Fassets%2F1%20Nav%20menu%2Flogo.ai%20(2)%201.png&w=256&q=75"
+        alt="Kinji"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='block'"
+      />
+      <div class="fallback" style="display:none">kin<span>ji</span> <span style="color:var(--t-d);font-weight:400;font-size:14px">portfolio</span></div>
+      <p>Product analytics case study — built for Product Analyst, Product Manager, and AI product strategy applications.</p>
+    </div>
+    <div class="footer-right">
+      <p>Mayumi Maemura<br>Toronto, Canada<br>Product Analyst · Strategy · AI Product</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Scroll-reveal via IntersectionObserver
+  const observer = new IntersectionObserver(
+    (entries) => entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('vis'); observer.unobserve(e.target); } }),
+    { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+  );
+  document.querySelectorAll('.rv').forEach(el => observer.observe(el));
+
+  // Trigger hero elements immediately
+  document.querySelectorAll('.hero .rv').forEach((el, i) => {
+    setTimeout(() => el.classList.add('vis'), i * 80);
+  });
+</script>
+
+</body>
+</html>

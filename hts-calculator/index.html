@@ -5,156 +5,298 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>HTS Duty Calculator</title>
 <meta name="description" content="Interactive HTS duty calculator for US apparel imports. Step-by-step code lookup following USITC hierarchy with Section 301, IEEPA, and FTA adjustments."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet"/>
 <style>
+/* ── Oceanic Logistics Protocol ──────────────────────────────── */
 :root {
-  --green:#4CB549; --gd:#3a9438; --gp:#eaf6e9;
-  --blue:#0D95C9;  --bd:#0a7aa6; --bp:#e0f3fb;
-  --red:#E64339;   --rp:#fdecea;
-  --yellow:#f5a623; --yp:#fffbf0;
-  --teal:#1aacaa;
-  --dark:#34454D;  --mid:#5c7078; --border:#dde3e6;
-  --light:#f4f7f9; --white:#fff;
-  --mono:'SF Mono','Fira Code','Cascadia Code',monospace;
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--light);color:var(--dark);font-size:14px;min-height:100vh}
+  /* Primary — deep navy */
+  --primary:        #00030a;
+  --primary-c:      #121e2c;   /* sidebar / dark card bg */
+  --on-primary:     #ffffff;
+  --on-primary-c:   #7a8698;   /* muted text on dark */
+  --inv-primary:    #bbc7da;
 
-/* ── Header ──────────────────────────────────────────────────── */
-.site-header{background:var(--dark);color:#fff;padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:200;box-shadow:0 2px 6px rgba(0,0,0,.25)}
-.hdr-left{display:flex;align-items:center;gap:14px}
-.logo-mark{width:34px;height:34px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#fff;flex-shrink:0;letter-spacing:-.5px}
-.site-header h1{font-size:16px;font-weight:600}
-.site-header h1 span{color:var(--blue)}
-.hdr-right{display:flex;align-items:center;gap:14px}
-.warn-badge{background:rgba(245,166,35,.18);border:1px solid rgba(245,166,35,.4);border-radius:20px;padding:4px 12px;font-size:11px;color:#f5a623;white-space:nowrap}
-.back-link{color:rgba(255,255,255,.55);font-size:12px;text-decoration:none;display:flex;align-items:center;gap:5px;transition:color .15s}
-.back-link:hover{color:#fff}
-.back-link svg{flex-shrink:0}
+  /* Secondary — slate blue (active states) */
+  --secondary:      #496179;
+  --secondary-c:    #c9e2ff;   /* active step tint bg */
+  --on-secondary-c: #4d657d;
+
+  /* Surfaces — light */
+  --surface:        #f7f9ff;   /* page background */
+  --surface-lo:     #f1f4f9;   /* subtle tint */
+  --surface-mid:    #ebeef3;   /* step headers, default */
+  --surface-hi:     #e5e8ee;
+  --surface-highest:#e0e3e8;
+  --white:          #ffffff;   /* cards */
+
+  /* Text */
+  --on-surface:     #181c20;
+  --on-surface-var: #44474c;
+  --outline:        #75777c;
+  --border:         #c5c6cc;   /* outline-variant */
+
+  /* Error */
+  --red:            #ba1a1a;
+  --rp:             #ffdad6;
+
+  /* Tertiary — neutral gray-green for complete steps */
+  --tertiary-c:     #1b1e1c;
+  --tertiary-fixed: #e2e3df;   /* complete step border */
+
+  /* Data mono */
+  --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--surface);color:var(--on-surface);font-size:14px;min-height:100vh;display:flex}
+
+/* ── Sidebar ─────────────────────────────────────────────────── */
+.sidebar{width:256px;min-height:100vh;background:var(--primary-c);display:flex;flex-direction:column;padding:20px 0;position:fixed;top:0;left:0;bottom:0;z-index:300;border-right:1px solid rgba(255,255,255,.06)}
+.sidebar-brand{padding:0 20px 28px;display:flex;align-items:center;gap:12px}
+.sidebar-logo{width:40px;height:40px;background:var(--on-primary);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sidebar-logo .material-symbols-outlined{color:var(--primary-c);font-size:22px}
+.sidebar-title{font-size:15px;font-weight:700;color:var(--on-primary);line-height:1.2;letter-spacing:-.01em}
+.sidebar-sub{font-size:11px;color:var(--on-primary-c);margin-top:1px;letter-spacing:.01em}
+.sidebar-nav{flex:1;padding:0 8px;display:flex;flex-direction:column;gap:2px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;letter-spacing:.01em;transition:all .15s;color:var(--on-primary-c);text-decoration:none}
+.nav-item .material-symbols-outlined{font-size:20px}
+.nav-item.active{background:var(--secondary);color:var(--on-primary)}
+.nav-item:not(.active):hover{background:rgba(255,255,255,.07);color:var(--on-primary)}
+.sidebar-footer{padding:16px 8px 0;margin-top:auto;border-top:1px solid rgba(255,255,255,.08)}
+
+/* ── Content wrapper (offset for sidebar) ────────────────────── */
+.content-wrap{margin-left:256px;flex:1;display:flex;flex-direction:column;min-height:100vh;min-width:0}
+
+/* ── Top header ──────────────────────────────────────────────── */
+.site-header{background:var(--white);border-bottom:1px solid var(--border);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:200}
+.hdr-tabs{display:flex;align-items:center;gap:0}
+.hdr-tab{font-size:14px;font-weight:500;color:var(--on-surface-var);padding:0 4px;height:64px;display:flex;align-items:center;border-bottom:2px solid transparent;cursor:pointer;text-decoration:none;transition:color .15s;margin-right:24px}
+.hdr-tab.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:700}
+.hdr-tab:not(.active):hover{color:var(--on-surface)}
+.hdr-right{display:flex;align-items:center;gap:8px}
+.hdr-icon-btn{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:none;border:none;color:var(--on-surface-var);cursor:pointer;transition:background .15s;position:relative}
+.hdr-icon-btn:hover{background:var(--surface-hi)}
+.hdr-icon-btn .material-symbols-outlined{font-size:20px}
+.hdr-notif-dot{position:absolute;top:8px;right:8px;width:7px;height:7px;background:var(--red);border-radius:50%;border:2px solid var(--white)}
+.hdr-divider{width:1px;height:24px;background:var(--border);margin:0 8px}
+.hdr-avatar{width:32px;height:32px;border-radius:50%;background:var(--secondary-c);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--secondary);cursor:pointer}
+/* legacy warn-badge / admin-btn / back-link — hidden in new layout */
+.warn-badge{display:none}
+.back-link{display:none}
+.hdr-left{display:none}
+.admin-btn{background:none;border:none;color:var(--on-surface-var);font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;padding:5px 8px;border-radius:4px;transition:all .15s;white-space:nowrap}
+.admin-btn:hover,.admin-btn.open{background:var(--surface-mid);color:var(--on-surface)}
 
 /* ── Layout ──────────────────────────────────────────────────── */
-main{max-width:1160px;margin:0 auto;padding:28px 28px 64px;display:grid;grid-template-columns:400px 1fr;gap:24px;align-items:start}
+main{flex:1;padding:32px 32px 48px;max-width:1440px;width:100%;display:grid;grid-template-columns:420px 1fr;gap:16px;align-items:start}
 
 /* ── Card ────────────────────────────────────────────────────── */
-.card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:22px 24px;transition:box-shadow .2s}
-.card:hover{box-shadow:0 4px 18px rgba(52,69,77,.07)}
-.card-title{font-size:13px;font-weight:700;color:var(--dark);margin-bottom:3px}
-.card-sub{font-size:11px;color:var(--mid);margin-bottom:18px}
+.card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:24px;transition:box-shadow .2s}
+.card:hover{box-shadow:0 2px 4px rgba(18,30,44,.08)}
+.card-title{font-size:18px;font-weight:600;color:var(--primary);letter-spacing:-.01em;margin-bottom:4px}
+.card-sub{font-size:13px;color:var(--on-surface-var);margin-bottom:20px;line-height:1.5}
 
 /* ── Steps ───────────────────────────────────────────────────── */
-.steps{display:flex;flex-direction:column;gap:10px}
-.step{border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color .2s}
-.step.active{border-color:var(--blue)}
-.step.complete{border-color:var(--green)}
-.step.disabled{opacity:.48;pointer-events:none}
-.step-hdr{display:flex;align-items:center;gap:10px;padding:11px 13px;background:var(--light)}
-.step.active .step-hdr{background:var(--bp)}
-.step.complete .step-hdr{background:var(--gp)}
-.step-num{width:22px;height:22px;border-radius:50%;background:var(--border);color:var(--mid);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.step.active .step-num{background:var(--blue);color:#fff}
-.step.complete .step-num{background:var(--green);color:#fff}
-.step-lbl{font-size:12px;font-weight:600;color:var(--dark);flex:1}
-.step-val{font-size:11px;color:var(--mid);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.step.complete .step-val{color:var(--gd);font-weight:600}
-.step-body{padding:10px 13px}
-.step select{width:100%;padding:8px 32px 8px 11px;border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--dark);background:var(--white);appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%235c7078' d='M1.41 0L6 4.58 10.59 0 12 1.41l-6 6-6-6z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;cursor:pointer;transition:border-color .15s}
-.step select:hover{border-color:var(--blue)}
-.step select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(13,149,201,.1)}
-.step select:disabled{background-color:var(--light);cursor:not-allowed}
-.reset-btn{width:100%;margin-top:14px;padding:9px;background:none;border:1px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;color:var(--mid);cursor:pointer;transition:all .15s}
+.steps{display:flex;flex-direction:column;gap:12px}
+.step{border:1px solid var(--border);border-radius:6px;overflow:hidden;transition:border-color .2s,box-shadow .2s}
+.step.active{border-color:var(--secondary);box-shadow:0 0 0 1px var(--secondary)}
+.step.complete{border-color:var(--tertiary-fixed)}
+.step.disabled{opacity:.5;pointer-events:none}
+.step-hdr{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--surface-mid)}
+.step.active .step-hdr{background:rgba(201,226,255,.25)}
+.step.complete .step-hdr{background:var(--surface-hi)}
+.step-num{width:24px;height:24px;border-radius:50%;background:var(--surface-highest);color:var(--on-surface-var);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step.active .step-num{background:var(--secondary);color:#fff}
+.step.complete .step-num{background:var(--tertiary-c);color:#fff}
+.step-lbl{font-size:12px;font-weight:700;color:var(--on-surface);letter-spacing:.05em;text-transform:uppercase;flex:1}
+.step-val{font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.step.active .step-val{background:var(--secondary-c);color:var(--on-secondary-c)}
+.step.complete .step-val{background:var(--tertiary-fixed);color:#454745}
+.step.disabled .step-val{background:var(--surface-highest);color:var(--on-surface-var)}
+.step-body{padding:10px 14px}
+.step select{width:100%;padding:8px 32px 8px 10px;border:1px solid var(--border);border-radius:4px;font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface);background:var(--white);appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath stroke='%2344474c' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' fill='none' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;background-size:20px;cursor:pointer;transition:border-color .15s}
+.step select:hover{border-color:var(--secondary)}
+.step select:focus{outline:none;border-color:var(--secondary);box-shadow:0 0 0 1px var(--secondary)}
+.step select:disabled{background-color:var(--surface-lo);cursor:not-allowed;color:var(--on-surface-var)}
+.reset-btn{width:100%;margin-top:16px;padding:10px;background:none;border:1px solid var(--border);border-radius:4px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--on-surface-var);cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
 .reset-btn:hover{border-color:var(--red);color:var(--red);background:var(--rp)}
 
 /* ── Results column ──────────────────────────────────────────── */
-.results{display:flex;flex-direction:column;gap:20px}
+.results{display:flex;flex-direction:column;gap:16px}
 
-/* ── HTS code display ────────────────────────────────────────── */
-.code-card{text-align:center;padding:24px 24px 20px}
-.code-eyebrow{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--mid);margin-bottom:10px}
-.code-display{font-family:var(--mono);font-size:34px;font-weight:600;letter-spacing:2px;line-height:1;padding-bottom:14px;transition:color .3s}
-.code-display .k{color:var(--dark)}
-.code-display .u{color:var(--border)}
-.code-display.found .k{color:var(--gd)}
-.code-display.error{color:var(--red)}
-.code-display.error .k{color:var(--red)}
-.progress-dots{display:flex;gap:5px;justify-content:center;margin-top:2px}
-.dot{width:6px;height:6px;border-radius:50%;background:var(--border);transition:background .25s}
-.dot.done{background:var(--green)}
-.dot.active{background:var(--blue)}
+/* ── HTS code display — dark navy card ───────────────────────── */
+.code-card{background:var(--primary-c)!important;border-color:transparent!important;padding:32px 28px 24px;position:relative;overflow:hidden}
+.code-card:hover{box-shadow:0 4px 12px rgba(0,3,10,.25)!important}
+.code-eyebrow{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.10em;color:var(--on-primary-c);margin-bottom:16px}
+.code-display{font-family:var(--mono);font-size:38px;font-weight:400;letter-spacing:.05em;line-height:1;padding-bottom:16px;transition:color .3s}
+.code-display .k{color:var(--on-primary)}
+.code-display .u{color:rgba(255,255,255,.2)}
+.code-display.found .k{color:var(--inv-primary)}
+.code-display.error{color:#ffb4ab}
+.code-display.error .k{color:#ffb4ab}
+/* background diagonal lines */
+.code-card::after{content:'';position:absolute;right:-20px;top:0;bottom:0;width:35%;opacity:.06;background-image:repeating-linear-gradient(135deg,currentColor 0,currentColor 1px,transparent 0,transparent 50%);background-size:12px 12px;color:var(--on-primary);pointer-events:none}
+/* draft badge */
+.code-draft-badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;background:var(--secondary);color:var(--on-primary);padding:2px 7px;border-radius:3px;vertical-align:super;margin-left:8px;text-transform:uppercase}
+.progress-dots{display:flex;gap:6px;margin-top:4px}
+.dot{height:4px;flex:1;border-radius:999px;background:rgba(255,255,255,.12);transition:background .25s}
+.dot.done{background:var(--secondary)}
+.dot.active{background:var(--inv-primary)}
 
 /* ── Duty breakdown ──────────────────────────────────────────── */
-.duty-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
-.duty-row{display:flex;justify-content:space-between;align-items:center;padding:10px 13px;border-radius:8px;border:1px solid var(--border)}
+.duty-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.duty-row{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-radius:4px;border:1px solid var(--border)}
 .duty-row.span2{grid-column:1/-1}
-.duty-row.base{background:var(--bp);border-color:#b5dcf2}
-.duty-row.add{background:var(--rp);border-color:#f2c2be}
-.duty-row.discount{background:var(--gp);border-color:#b2dcaf}
-.duty-row.none{background:var(--light)}
-.duty-row.final{background:var(--dark);border-color:var(--dark);padding:14px 16px}
-.duty-row-lbl{font-size:12px;font-weight:500}
-.duty-row.final .duty-row-lbl{font-size:13px;font-weight:600;color:rgba(255,255,255,.75)}
-.duty-row-val{font-size:14px;font-weight:700}
-.duty-row.none .duty-row-val{color:var(--mid)}
-.duty-row.final .duty-row-val{font-size:24px;color:#fff}
-.duty-row.final.low .duty-row-val{color:#79d977}
-.duty-row.final.high .duty-row-val{color:#ff8a80}
-.duty-placeholder{text-align:center;padding:30px 0;color:var(--mid);font-size:12px;line-height:1.7;border:2px dashed var(--border);border-radius:10px}
+.duty-row.base{background:var(--surface-lo);border-color:var(--border)}
+.duty-row.add{background:var(--rp);border-color:#f2b8b4}
+.duty-row.discount{background:#f0fdf4;border-color:#86efac}
+.duty-row.none{background:var(--surface-lo)}
+.duty-row.final{background:var(--secondary-c);border:1px solid rgba(73,97,121,.2);padding:16px 18px;border-radius:6px;display:flex;justify-content:space-between;align-items:center}
+.duty-row-lbl{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--on-surface-var)}
+.duty-row.final .duty-row-lbl{color:var(--on-secondary-c);font-weight:700;font-size:11px;letter-spacing:.08em}
+.duty-row-lbl small{display:block;font-size:10px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--outline);font-style:italic;margin-top:2px}
+.duty-row-val{font-family:var(--mono);font-size:18px;font-weight:500;color:var(--on-surface)}
+.duty-row.none .duty-row-val{color:var(--outline);font-size:15px}
+.duty-row.final .duty-row-val{font-size:28px;font-weight:700;color:var(--primary);letter-spacing:-.02em}
+.duty-row.final.low .duty-row-val{color:#166534}
+.duty-row.final.high .duty-row-val{color:var(--red)}
+.duty-placeholder{text-align:center;padding:32px 0;color:var(--outline);font-size:13px;line-height:1.8;border:1px dashed var(--border);border-radius:6px}
 
 /* ── Notes ───────────────────────────────────────────────────── */
-.notes-box{display:none;background:var(--yp);border:1px solid #f0d080;border-radius:8px;padding:11px 14px;font-size:12px;color:#6b4a0a;line-height:1.65;margin-top:14px}
+.notes-box{display:none;background:#fffbeb;border:1px solid #fde68a;border-radius:4px;padding:12px 14px;font-size:12px;color:#92400e;line-height:1.65;margin-top:12px}
 .notes-box.on{display:block}
 
 /* ── Disclaimer ──────────────────────────────────────────────── */
-.disclaimer{background:rgba(245,166,35,.07);border:1px solid rgba(245,166,35,.22);border-radius:10px;padding:14px 16px;font-size:12px;color:var(--mid);line-height:1.65}
-.disclaimer strong{color:var(--dark)}
-.disclaimer a{color:var(--bd)}
+.disclaimer{background:var(--surface-lo);border:1px solid var(--border);border-radius:6px;padding:14px 16px;font-size:12px;color:var(--on-surface-var);line-height:1.65;display:flex;gap:10px}
+.disclaimer-icon{color:var(--outline);flex-shrink:0;margin-top:1px;font-size:18px}
+.disclaimer strong{color:var(--on-surface)}
+.disclaimer a{color:var(--secondary)}
+
+/* ── Recent Classifications table ────────────────────────────── */
+.recent-section{margin:0 32px 40px;background:var(--white);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.recent-hdr{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.recent-title{font-size:18px;font-weight:600;color:var(--primary);letter-spacing:-.01em}
+.recent-table{width:100%;border-collapse:collapse;text-align:left}
+.recent-table thead tr{background:var(--surface-lo);border-bottom:1px solid var(--border)}
+.recent-table th{padding:10px 24px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--on-surface-var)}
+.recent-table tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
+.recent-table tbody tr:last-child{border-bottom:none}
+.recent-table tbody tr:hover{background:var(--surface-lo)}
+.recent-table td{padding:14px 24px;font-size:13px;color:var(--on-surface)}
+.recent-table td.mono{font-family:var(--mono);font-size:13px;color:var(--primary);font-weight:500;letter-spacing:.02em}
+.recent-table td.muted{color:var(--on-surface-var)}
+.status-dot{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;letter-spacing:.03em}
+.status-dot::before{content:'';width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.status-dot.active::before{background:#22c55e}
+.status-dot.review::before{background:#eab308}
+.status-dot.prohibited::before{background:var(--red)}
+.tbl-action{background:none;border:none;color:var(--secondary);cursor:pointer;padding:4px;border-radius:4px;transition:color .15s}
+.tbl-action:hover{color:var(--primary)}
+.tbl-action .material-symbols-outlined{font-size:18px;display:block}
 
 /* ── Footer ──────────────────────────────────────────────────── */
-footer{background:var(--dark);color:rgba(255,255,255,.38);text-align:center;padding:18px;font-size:11px}
+footer{background:var(--surface-lo);color:var(--on-surface-var);border-top:1px solid var(--border);text-align:center;padding:16px 32px;font-size:11px;letter-spacing:.03em}
 
 /* ── Admin panel ─────────────────────────────────────────────── */
-.admin-btn{background:none;border:none;color:rgba(255,255,255,.45);font-size:12px;cursor:pointer;padding:5px 8px;border-radius:6px;transition:all .15s;white-space:nowrap;line-height:1}
-.admin-btn:hover,.admin-btn.open{background:rgba(255,255,255,.1);color:rgba(255,255,255,.85)}
-.admin-panel{background:#263038;border-bottom:1px solid rgba(255,255,255,.1);padding:20px 28px}
-.admin-inner{max-width:1160px;margin:0 auto}
-.admin-hdr{margin-bottom:16px}
-.admin-title{font-size:13px;font-weight:700;color:#fff;margin-bottom:3px}
-.admin-sub{font-size:11px;color:rgba(255,255,255,.45);line-height:1.5}
-.admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
-.upload-zone{background:rgba(255,255,255,.06);border:1.5px dashed rgba(255,255,255,.2);border-radius:10px;padding:16px 18px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
-.upload-zone:hover,.upload-zone.drag{background:rgba(13,149,201,.12);border-color:var(--blue)}
+.admin-panel{background:var(--surface-mid);border-bottom:1px solid var(--border);padding:20px 32px}
+.admin-inner{max-width:1440px;margin:0 auto}
+.admin-hdr{margin-bottom:14px}
+.admin-title{font-size:13px;font-weight:700;color:var(--on-surface);margin-bottom:3px}
+.admin-sub{font-size:11px;color:var(--on-surface-var);line-height:1.5}
+.admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:12px}
+.upload-zone{background:var(--white);border:1.5px dashed var(--border);border-radius:6px;padding:16px 18px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.upload-zone:hover,.upload-zone.drag{background:rgba(73,97,121,.05);border-color:var(--secondary)}
 .upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
-.upload-zone-lbl{font-size:12px;font-weight:700;color:#fff;margin-bottom:2px}
-.upload-zone-sub{font-size:11px;color:rgba(255,255,255,.45);margin-bottom:10px;line-height:1.5}
-.upload-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.5)}
-.upload-status.ok{background:rgba(76,181,73,.2);color:#7bda78}
-.upload-status.err{background:rgba(230,67,57,.2);color:#ff8a80}
+.upload-zone-lbl{font-size:12px;font-weight:700;color:var(--on-surface);margin-bottom:2px}
+.upload-zone-sub{font-size:11px;color:var(--on-surface-var);margin-bottom:10px;line-height:1.5}
+.upload-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;letter-spacing:.04em;padding:3px 9px;border-radius:999px;background:var(--surface-hi);color:var(--on-surface-var)}
+.upload-status.ok{background:#dcfce7;color:#166534;border:1px solid #86efac}
+.upload-status.err{background:var(--rp);color:var(--red)}
 .admin-actions{display:flex;align-items:center;gap:12px}
-.restore-btn{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.6);border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer;transition:all .15s}
-.restore-btn:hover{background:rgba(230,67,57,.18);border-color:rgba(230,67,57,.5);color:#ff8a80}
-.admin-updated{font-size:11px;color:rgba(255,255,255,.3);margin-left:auto}
+.restore-btn{background:none;border:1px solid var(--border);color:var(--on-surface-var);border-radius:4px;padding:7px 14px;font-size:12px;font-weight:600;letter-spacing:.03em;cursor:pointer;transition:all .15s}
+.restore-btn:hover{background:var(--rp);border-color:#f2b8b4;color:var(--red)}
+.admin-updated{font-size:11px;color:var(--outline);margin-left:auto}
+
+/* ── FAB (Data admin toggle) ─────────────────────────────────── */
+.fab{position:fixed;bottom:32px;right:32px;width:52px;height:52px;background:var(--primary-c);color:var(--on-primary);border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(0,3,10,.35);transition:transform .2s,box-shadow .2s;z-index:100}
+.fab:hover{transform:scale(1.08);box-shadow:0 6px 18px rgba(0,3,10,.4)}
+.fab:active{transform:scale(.95)}
+.fab .material-symbols-outlined{font-size:22px}
+
 /* ── Widget mode ─────────────────────────────────────────────── */
-.wm .site-header,.wm footer,.wm #adminPanel{display:none}
+.wm .sidebar,.wm .site-header,.wm footer,.wm #adminPanel,.wm .recent-section,.wm .fab{display:none}
+.wm .content-wrap{margin-left:0}
 .wm main{max-width:100%;padding:16px;grid-template-columns:1fr;gap:16px}
 
 /* ── Responsive ──────────────────────────────────────────────── */
-@media(max-width:860px){main{grid-template-columns:1fr}.code-display{font-size:26px}}
-@media(max-width:600px){.admin-grid{grid-template-columns:1fr}.admin-panel{padding:16px}}
-@media(max-width:540px){.site-header{padding:0 16px}main{padding:16px 16px 48px}.duty-grid{grid-template-columns:1fr}.duty-row.span2{grid-column:1}.hdr-right .warn-badge{display:none}}
+@media(max-width:1100px){main{grid-template-columns:380px 1fr}}
+@media(max-width:960px){.sidebar{display:none}.content-wrap{margin-left:0}main{grid-template-columns:1fr}.code-display{font-size:28px}}
+@media(max-width:600px){.admin-grid{grid-template-columns:1fr}.admin-panel{padding:16px}.recent-section{margin:0 0 32px}.recent-table th,.recent-table td{padding:10px 14px}}
+@media(max-width:540px){.site-header{padding:0 16px}main{padding:16px 16px 40px}.duty-grid{grid-template-columns:1fr}.duty-row.span2{grid-column:1}}
 </style>
 </head>
 <body>
 
-<header class="site-header">
-  <div class="hdr-left">
-    <div class="logo-mark">HTS</div>
-    <h1>Duty <span>Calculator</span></h1>
+<!-- ── Sidebar ─────────────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-logo">
+      <span class="material-symbols-outlined">precision_manufacturing</span>
+    </div>
+    <div>
+      <div class="sidebar-title">HTS Core</div>
+      <div class="sidebar-sub">Global Logistics</div>
+    </div>
   </div>
-  <div class="hdr-right">
-    <span class="warn-badge">⚠ Rates require verification</span>
-    <button class="admin-btn" id="adminBtn" onclick="toggleAdmin()">⚙ Data</button>
-    <a class="back-link" href="/">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
-      Dashboard
+  <nav class="sidebar-nav">
+    <a class="nav-item active" href="#">
+      <span class="material-symbols-outlined">calculate</span>
+      Generator
     </a>
+    <a class="nav-item" href="#">
+      <span class="material-symbols-outlined">inventory_2</span>
+      Archive
+    </a>
+    <a class="nav-item" href="#">
+      <span class="material-symbols-outlined">verified_user</span>
+      Compliance
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="#">
+        <span class="material-symbols-outlined">help</span>
+        Support
+      </a>
+      <a class="nav-item" href="/">
+        <span class="material-symbols-outlined">logout</span>
+        Sign Out
+      </a>
+    </nav>
+  </div>
+</aside>
+
+<!-- ── Content wrapper ─────────────────────────────────────── -->
+<div class="content-wrap">
+
+<header class="site-header">
+  <nav class="hdr-tabs">
+    <a class="hdr-tab active" href="#">Dashboard</a>
+    <a class="hdr-tab" href="#">History</a>
+    <a class="hdr-tab" href="#">Library</a>
+  </nav>
+  <div class="hdr-right">
+    <button class="hdr-icon-btn" title="Notifications">
+      <span class="material-symbols-outlined">notifications</span>
+      <span class="hdr-notif-dot"></span>
+    </button>
+    <button class="hdr-icon-btn" title="Settings">
+      <span class="material-symbols-outlined">settings</span>
+    </button>
+    <div class="hdr-divider"></div>
+    <div class="hdr-avatar" title="Account">MM</div>
   </div>
 </header>
 
@@ -282,9 +424,9 @@ footer{background:var(--dark);color:rgba(255,255,255,.38);text-align:center;padd
   <div class="results">
 
     <div class="card code-card">
-      <div class="code-eyebrow">HTS Code</div>
+      <div class="code-eyebrow">Current Classification</div>
       <div class="code-display" id="codeDisplay">
-        <span class="u">xxxx.xx.xxxx</span>
+        <span class="u">xxxx.xx.xxxx</span><span class="code-draft-badge">Draft</span>
       </div>
       <div class="progress-dots">
         <div class="dot" id="dot1"></div>
@@ -308,13 +450,62 @@ footer{background:var(--dark);color:rgba(255,255,255,.38);text-align:center;padd
     </div>
 
     <div class="disclaimer">
-      <strong>Rates require independent verification.</strong> HTS base duty rates, Section 301 tariffs, and IEEPA tariff rates are subject to rapid change via executive order. Rates shown are illustrative, derived from publicly available USITC and USTR data, and may not reflect current exclusions, pauses, or FTA eligibility rulings. Always confirm at <a href="https://hts.usitc.gov" target="_blank" rel="noopener">hts.usitc.gov</a> and with CBP before making sourcing or entry decisions.
+      <span class="material-symbols-outlined disclaimer-icon">info</span>
+      <div><strong>Compliance Disclaimer:</strong> This calculator provides estimates based on current USITC HTS data. Final classification and duty assessment are the legal responsibility of the Importer of Record. Cross-referencing with official Customs Rulings is recommended for high-value shipments. Always confirm at <a href="https://hts.usitc.gov" target="_blank" rel="noopener">hts.usitc.gov</a> and with CBP before making sourcing or entry decisions.</div>
     </div>
 
   </div>
 </main>
 
+<!-- ── Recent Classifications ──────────────────────────────── -->
+<section class="recent-section">
+  <div class="recent-hdr">
+    <div class="recent-title">Recent Classifications</div>
+  </div>
+  <table class="recent-table">
+    <thead>
+      <tr>
+        <th>HTS Code</th>
+        <th>Description</th>
+        <th>Country of Origin</th>
+        <th>Status</th>
+        <th style="text-align:right">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="mono">8517.13.0000</td>
+        <td>Smartphones for cellular networks</td>
+        <td class="muted">VN (Vietnam)</td>
+        <td><span class="status-dot active">Active</span></td>
+        <td style="text-align:right"><button class="tbl-action"><span class="material-symbols-outlined">visibility</span></button></td>
+      </tr>
+      <tr>
+        <td class="mono">9018.90.2000</td>
+        <td>Stethoscopes and parts thereof</td>
+        <td class="muted">DE (Germany)</td>
+        <td><span class="status-dot review">Under Review</span></td>
+        <td style="text-align:right"><button class="tbl-action"><span class="material-symbols-outlined">visibility</span></button></td>
+      </tr>
+      <tr>
+        <td class="mono">8413.70.2000</td>
+        <td>Submersible pumps</td>
+        <td class="muted">CN (China)</td>
+        <td><span class="status-dot prohibited">Prohibited</span></td>
+        <td style="text-align:right"><button class="tbl-action"><span class="material-symbols-outlined">visibility</span></button></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
 <footer>HTS Duty Calculator — illustrative rates only &middot; Not legal or customs advice</footer>
+
+</div><!-- /.content-wrap -->
+
+<!-- ── FAB: Data admin toggle ──────────────────────────────── -->
+<button class="fab" onclick="toggleAdmin()" title="Data Management">
+  <span class="material-symbols-outlined">database</span>
+</button>
 
 <script>
 // ── DATA ──────────────────────────────────────────────────────────────────
