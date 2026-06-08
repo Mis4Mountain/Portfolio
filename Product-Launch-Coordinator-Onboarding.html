@@ -191,10 +191,139 @@
   .ph4 { background: rgba(200,192,126,0.10); color: var(--yellow); }
   .ph5 { background: rgba(126,200,126,0.10); color: var(--accent3); }
 
+  /* ── DEPARTMENT BLOCKS ── */
+  .dept-block {
+    margin-bottom: 20px;
+  }
+  .dept-header {
+    padding: 10px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    border-radius: 10px 10px 0 0;
+    border: 1px solid var(--border);
+    border-bottom: none;
+  }
+  .dept-product  { background: rgba(200,169,110,0.12); color: var(--accent); }
+  .dept-production { background: rgba(200,192,126,0.12); color: var(--yellow); }
+  .dept-creative { background: rgba(200,126,126,0.12); color: var(--red); }
+  .dept-ecomm    { background: rgba(126,184,200,0.12); color: var(--accent2); }
+  .dept-you      { background: rgba(126,200,126,0.12); color: var(--accent3); }
+  .dept-block .table-wrap { border-radius: 0 0 10px 10px; }
+  .dept-block td:first-child { white-space: nowrap; }
+
+  /* ── GANTT (custom CSS) ── */
+  .gantt-scroll-wrap {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 540px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+  }
+  .gantt-inner {
+    min-width: 900px;
+    padding: 16px 16px 20px;
+  }
+  .gantt-grid {
+    display: grid;
+    grid-template-columns: 240px repeat(13, 1fr);
+    align-items: stretch;
+    min-height: 28px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .gantt-week-header {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--muted);
+    text-align: center;
+    padding: 6px 2px;
+    border-left: 1px solid rgba(255,255,255,0.05);
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+  .gantt-label-col {
+    /* empty spacer above row labels */
+  }
+  .gantt-section-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent);
+    padding: 10px 0 4px 0;
+    margin-left: 0;
+  }
+  .gantt-row-label {
+    font-size: 12px;
+    color: var(--text);
+    padding: 4px 12px 4px 0;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+  }
+  .gantt-bar-cell {
+    border-left: 1px solid rgba(255,255,255,0.04);
+    margin: 3px 1px;
+    border-radius: 3px;
+  }
+  /* colour fills */
+  .gc-accent { background: rgba(200,169,110,0.55); border-radius: 4px; }
+  .gc-blue   { background: rgba(126,184,200,0.55); border-radius: 4px; }
+  .gc-yellow { background: rgba(200,192,126,0.55); border-radius: 4px; }
+  .gc-red    { background: rgba(200,126,126,0.65); border-radius: 4px; }
+  .gc-green  { background: rgba(126,200,126,0.55); border-radius: 4px; }
+
+  /* ── STICKY NAV ── */
+  .toc-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(15,15,15,0.92);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    margin: 0 -32px 40px;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+  }
+  .toc-nav::-webkit-scrollbar { display: none; }
+  .toc-nav-inner {
+    display: inline-flex;
+    gap: 0;
+    max-width: 1200px;
+  }
+  .toc-link {
+    display: inline-block;
+    padding: 13px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+    white-space: nowrap;
+  }
+  .toc-link:hover {
+    color: var(--text);
+    border-bottom-color: var(--border);
+  }
+  .toc-link.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* scroll-margin so sticky nav doesn't cover headings */
+  .section { scroll-margin-top: 52px; }
+
   @media (max-width: 700px) {
     .grid-2 { grid-template-columns: 1fr; }
     .phase-strip { flex-direction: column; }
     .phase { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .toc-nav { padding: 0 16px; margin: 0 -16px 32px; }
   }
 </style>
 </head>
@@ -204,8 +333,23 @@
   <h1>Product Launch Coordinator</h1>
   <p class="subtitle">Unbound Merino — Onboarding Visual Reference · Role evolves → Product Launch Manager</p>
 
+  <!-- ── STICKY TOC NAV ── -->
+  <nav class="toc-nav" aria-label="Sections">
+    <div class="toc-nav-inner">
+      <a class="toc-link" href="#phase-overview">Phase Overview</a>
+      <a class="toc-link" href="#workflow">Workflow</a>
+      <a class="toc-link" href="#raci">RACI</a>
+      <a class="toc-link" href="#photo-decision">Photo Decision Tree</a>
+      <a class="toc-link" href="#systems">Systems &amp; Tools</a>
+      <a class="toc-link" href="#rules">Key Rules</a>
+      <a class="toc-link" href="#sample-tracking">Sample Tracking</a>
+      <a class="toc-link" href="#gantt">Quarterly Gantt</a>
+      <a class="toc-link" href="#partners">Key Partners</a>
+    </div>
+  </nav>
+
   <!-- ── PHASE OVERVIEW ── -->
-  <div class="section">
+  <div class="section" id="phase-overview">
     <h2>End-to-End Phase Overview</h2>
     <div class="phase-strip">
       <div class="phase ph1">Plan<div class="phase-label">Quarterly launch list</div></div>
@@ -217,7 +361,7 @@
   </div>
 
   <!-- ── MAIN WORKFLOW DIAGRAM ── -->
-  <div class="section">
+  <div class="section" id="workflow">
     <h2>Full Workflow — Flowchart</h2>
     <div class="diagram-card">
       <div class="mermaid">
@@ -277,7 +421,7 @@ flowchart TD
   </div>
 
   <!-- ── RACI ── -->
-  <div class="section">
+  <div class="section" id="raci">
     <h2>RACI — Who Does What</h2>
     <div class="table-wrap">
       <table>
@@ -444,7 +588,7 @@ flowchart TD
   </div>
 
   <!-- ── PHOTOGRAPHY DECISION TREE ── -->
-  <div class="section">
+  <div class="section" id="photo-decision">
     <h2>Photography Decision Tree</h2>
     <div class="diagram-card">
       <div class="mermaid">
@@ -475,7 +619,7 @@ flowchart LR
   </div>
 
   <!-- ── SYSTEMS + TOOLS ── -->
-  <div class="section">
+  <div class="section" id="systems">
     <h2>Systems &amp; Tools Reference</h2>
     <div class="table-wrap">
       <table>
@@ -551,7 +695,7 @@ flowchart LR
   </div>
 
   <!-- ── KEY RULES + CAPACITIES ── -->
-  <div class="section">
+  <div class="section" id="rules">
     <h2>Key Rules &amp; Shoot Capacity</h2>
     <div class="grid-2">
       <div class="card">
@@ -603,65 +747,422 @@ flowchart LR
   </div>
 
   <!-- ── SAMPLE STATUS FLOW ── -->
-  <div class="section">
+  <div class="section" id="sample-tracking">
     <h2>Sample Tracking Status Flow</h2>
-    <div class="diagram-card">
-      <div class="mermaid">
-stateDiagram-v2
-  [*] --> Identified : Product added to launch list
-  Identified --> Requested : PLC adds to Sample Tracker;\nNoa requests from factory
-  Requested --> InTransit : Supplier ships sample;\ntracking # added
-  InTransit --> AtWarehouse : Warehouse receives;\nstatus updated
-  AtWarehouse --> OnSet : Sample pulled for shoot day
-  OnSet --> Complete : Shoot done;\nremove from tracker
-  Requested --> Escalate : Due date &lt; 1 month,\nno update → follow up
-  Escalate --> InTransit : Supplier responds
-      </div>
+    <p style="color:var(--muted);font-size:12px;margin-bottom:16px;">Each row shows a status stage — who acts, what triggers the transition, and what to do if it stalls.</p>
+    <div class="table-wrap">
+      <table class="status-table">
+        <thead>
+          <tr>
+            <th style="width:28px"></th>
+            <th>Status</th>
+            <th>What it means</th>
+            <th>Who acts</th>
+            <th>Trigger to advance</th>
+            <th>If stalled</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="text-align:center">1</td>
+            <td><span class="badge" style="background:rgba(200,169,110,0.15);color:#c8a96e">Identified</span></td>
+            <td>Product added to launch list from Product Brief</td>
+            <td>You (PLC)</td>
+            <td>Add product row to Photo Shoot Sample Tracker in Notion</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td style="text-align:center">2</td>
+            <td><span class="badge" style="background:rgba(126,184,200,0.15);color:#7eb8c8">Requested</span></td>
+            <td>Sample formally requested from factory via Noa</td>
+            <td>Noa (Production Mgr)</td>
+            <td>Noa sends request to supplier; status updated in tracker</td>
+            <td>Chase Noa if no update within a few days</td>
+          </tr>
+          <tr>
+            <td style="text-align:center; color: var(--red)">⚠</td>
+            <td><span class="badge" style="background:rgba(200,126,126,0.15);color:#c87e7e">Escalate</span></td>
+            <td>Due date &lt; 1 month with no supplier update</td>
+            <td>You (PLC) + Noa</td>
+            <td>Follow up with supplier directly; request ETA confirmation</td>
+            <td>Flag to manager; consider pushing shoot or retouching instead</td>
+          </tr>
+          <tr>
+            <td style="text-align:center">3</td>
+            <td><span class="badge" style="background:rgba(200,192,126,0.15);color:#c8c07e">In Transit</span></td>
+            <td>Supplier has shipped; tracking number added to tracker</td>
+            <td>Supplier / Noa</td>
+            <td>Tracking # confirmed; warehouse notified of incoming</td>
+            <td>Monitor tracking; follow up if delayed past ETA</td>
+          </tr>
+          <tr>
+            <td style="text-align:center">4</td>
+            <td><span class="badge" style="background:rgba(126,200,126,0.15);color:#7ec87e">At Warehouse</span></td>
+            <td>Sample physically received; warehouse updates status</td>
+            <td>Warehouse Manager</td>
+            <td>Status updated to "At Warehouse" in tracker</td>
+            <td>Confirm warehouse received correct item/colour</td>
+          </tr>
+          <tr>
+            <td style="text-align:center">5</td>
+            <td><span class="badge" style="background:rgba(126,184,200,0.15);color:#7eb8c8">On Set</span></td>
+            <td>Sample pulled and confirmed present on shoot day</td>
+            <td>You (PLC) + Ted</td>
+            <td>Sample checked off shoot list at start of shoot day</td>
+            <td>If missing: reschedule product or shoot without (if retouch is viable)</td>
+          </tr>
+          <tr>
+            <td style="text-align:center">6</td>
+            <td><span class="badge" style="background:rgba(200,169,110,0.15);color:#c8a96e">Complete</span></td>
+            <td>Product shot; remove from active tracker</td>
+            <td>You (PLC)</td>
+            <td>Shoot confirmed done for this product; row removed/archived</td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
   <!-- ── QUARTERLY RHYTHM ── -->
-  <div class="section">
-    <h2>Quarterly Rhythm</h2>
-    <div class="diagram-card">
-      <div class="mermaid">
-gantt
-  title Typical Quarter — Product Launch Coordinator
-  dateFormat  YYYY-MM-DD
-  axisFormat  %b %d
+  <div class="section" id="gantt">
+    <h2>Quarterly Rhythm — Gantt</h2>
+    <p style="color:var(--muted);font-size:12px;margin-bottom:16px;">Scroll right to see the full timeline. Scroll down within the chart to see all rows. Week numbers are approximate — adjust to your actual quarter start.</p>
+    <div class="gantt-scroll-wrap">
+      <div class="gantt-inner">
+        <!-- Header: week labels -->
+        <div class="gantt-grid">
+          <!-- Row labels col + 13 week cols -->
+          <div class="gantt-label-col"></div>
+          <div class="gantt-week-header">Wk 1</div>
+          <div class="gantt-week-header">Wk 2</div>
+          <div class="gantt-week-header">Wk 3</div>
+          <div class="gantt-week-header">Wk 4</div>
+          <div class="gantt-week-header">Wk 5</div>
+          <div class="gantt-week-header">Wk 6</div>
+          <div class="gantt-week-header">Wk 7</div>
+          <div class="gantt-week-header">Wk 8</div>
+          <div class="gantt-week-header">Wk 9</div>
+          <div class="gantt-week-header">Wk 10</div>
+          <div class="gantt-week-header">Wk 11</div>
+          <div class="gantt-week-header">Wk 12</div>
+          <div class="gantt-week-header">Wk 13</div>
+        </div>
 
-  section Planning
-  Review Product Brief           :active, plan1, 2026-01-01, 7d
-  Cross-check Order Status v2    :plan2, after plan1, 5d
-  Determine shoot vs retouch     :plan3, after plan2, 5d
+        <!-- Section: Planning -->
+        <div class="gantt-section-label">Planning</div>
+        <div class="gantt-grid">
+          <div class="gantt-row-label">Review Product Brief</div>
+          <div class="gantt-bar-cell gc-accent" style="grid-column: 2 / 3" title="Week 1"></div>
+          <div class="gantt-bar-cell" style="grid-column: 3 / 15"></div>
+        </div>
+        <div class="gantt-grid">
+          <div class="gantt-row-label">Cross-check Order Status v2</div>
+          <div class="gantt-bar-cell" style="grid-column: 2 / 3"></div>
+          <div class="gantt-bar-cell gc-accent" style="grid-column: 3 / 4" title="Week 2–3"></div>
+          <div class="gantt-bar-cell" style="grid-column: 4 / 15"></div>
+        </div>
+        <div class="gantt-grid">
+          <div class="gantt-row-label">Determine shoot vs. retouch</div>
+          <div class="gantt-bar-cell" style="grid-column: 2 / 4"></div>
+          <div class="gantt-bar-cell gc-accent" style="grid-column: 4 / 5"></div>
+          <div class="gantt-bar-cell" style="grid-column: 5 / 15"></div>
+        </div>
 
-  section Sample Tracking
-  Request samples via Noa        :samp1, after plan3, 3d
-  Monitor in-transit status      :samp2, after samp1, 30d
-  Confirm at-warehouse receipt   :samp3, after samp2, 7d
+        <!-- Section: Sample Tracking -->
+        <div class="gantt-section-label">Sample Tracking</div>
+        <div class="gantt-grid">
+          <div class="gantt-row-label">Request samples via Noa</div>
+          <div class="gantt-bar-cell" style="grid-column: 2 / 4"></div>
+          <div class="gantt-bar-cell gc-blue" style="grid-column: 4 / 5"></div>
+          <div class="gantt-bar-cell" style="grid-column: 5 / 15"></div>
+        </div>
+        <div class="gantt-grid">
+          <div class="gantt-row-label">Monitor in-transit status</div>
+          <div class="gantt-bar-cell" style="grid-column: 2 / 5"></div>
+          <div class="gantt-bar-cell gc-blue" style="grid-column: 5 / 9"></div>
+          <div class="gantt-bar-cell" style="grid-column: 9 / 15"></div>
+        </div>
+        <div class="gantt-grid">
+          <div class="gantt-row-label">Confirm at-warehouse receipt</div>
+          <div class="gantt-bar-cell" style="grid-column: 2 / 8"></div>
+          <div class="gantt-bar-cell gc-blue" style="grid-column: 8 / 10"></div>
+          <div class="gantt-bar-cell" style="grid-column: 10 / 15"></div>
+        </div>
 
-  section Shoot Planning
-  Build shot lists (Production Hub) :shoot1, 2026-01-10, 7d
-  Draft shoot calendar w/ Ted & Jed :shoot2, after shoot1, 5d
-  Book shoot #1                  :shoot3, after shoot2, 2d
-  Book shoot #2 (if needed)      :shoot4, 2026-02-01, 2d
+        <!-- Section: Shoot Planning -->
+        <div class="gantt-section-label">Shoot Planning</div>
+        <div class="gantt-grid">
+          <div class="gantt-row-label">Build shot lists (Production Hub)</div>
+          <div class="gantt-bar-cell" style="grid-column: 2 / 3"></div>
+          <div class="gantt-bar-cell gc-yellow" style="grid-column: 3 / 5"></div>
+          <div class="gantt-bar-cell" style="grid-column: 5 / 15"></div>
+        </div>
+        <div class="gantt-grid">
+          <div class="gantt-row-label">Draft shoot calendar w/ Ted &amp; Jed</div>
+          <div class="gantt-bar-cell" style="grid-column: 2 / 5"></div>
+          <div class="gantt-bar-cell gc-yellow" style="grid-column: 5 / 6"></div>
+          <div class="gantt-bar-cell" style="grid-column: 6 / 15"></div>
+        </div>
+        <div class="gantt-grid">
+          <div class="gantt-row-label">Book shoot(s)</div>
+          <div class="gantt-bar-cell" style="grid-column: 2 / 6"></div>
+          <div class="gantt-bar-cell gc-yellow" style="grid-column: 6 / 7"></div>
+          <div class="gantt-bar-cell" style="grid-column: 7 / 15"></div>
+        </div>
 
-  section Execution
-  Shoot Day(s)                   :crit, exec1, 2026-02-10, 3d
-  Selects + retouching brief     :exec2, after exec1, 4d
-  Retouching by Christina        :exec3, after exec2, 14d
-  QA + approvals                 :exec4, after exec3, 4d
+        <!-- Section: Execution -->
+        <div class="gantt-section-label">Execution</div>
+        <div class="gantt-grid">
+          <div class="gantt-row-label">🔴 Shoot Day(s)</div>
+          <div class="gantt-bar-cell" style="grid-column: 2 / 7"></div>
+          <div class="gantt-bar-cell gc-red" style="grid-column: 7 / 8"></div>
+          <div class="gantt-bar-cell" style="grid-column: 8 / 15"></div>
+        </div>
+        <div class="gantt-grid">
+          <div class="gantt-row-label">Selects + retouching brief</div>
+          <div class="gantt-bar-cell" style="grid-column: 2 / 8"></div>
+          <div class="gantt-bar-cell gc-red" style="grid-column: 8 / 9"></div>
+          <div class="gantt-bar-cell" style="grid-column: 9 / 15"></div>
+        </div>
+        <div class="gantt-grid">
+          <div class="gantt-row-label">Retouching — Christina</div>
+          <div class="gantt-bar-cell" style="grid-column: 2 / 9"></div>
+          <div class="gantt-bar-cell gc-red" style="grid-column: 9 / 12"></div>
+          <div class="gantt-bar-cell" style="grid-column: 12 / 15"></div>
+        </div>
+        <div class="gantt-grid">
+          <div class="gantt-row-label">QA + approvals</div>
+          <div class="gantt-bar-cell" style="grid-column: 2 / 12"></div>
+          <div class="gantt-bar-cell gc-red" style="grid-column: 12 / 13"></div>
+          <div class="gantt-bar-cell" style="grid-column: 13 / 15"></div>
+        </div>
 
-  section Launch
-  Deliver finals to Web + Marketing :launch1, after exec4, 2d
-  Product pages go live          :crit, launch2, after launch1, 3d
-  Notify team via Slack          :launch3, after launch2, 1d
-      </div>
+        <!-- Section: Launch -->
+        <div class="gantt-section-label">Launch</div>
+        <div class="gantt-grid">
+          <div class="gantt-row-label">Deliver finals to Web + Marketing</div>
+          <div class="gantt-bar-cell" style="grid-column: 2 / 13"></div>
+          <div class="gantt-bar-cell gc-green" style="grid-column: 13 / 14"></div>
+          <div class="gantt-bar-cell" style="grid-column: 14 / 15"></div>
+        </div>
+        <div class="gantt-grid">
+          <div class="gantt-row-label">🔴 Product pages go live</div>
+          <div class="gantt-bar-cell" style="grid-column: 2 / 13"></div>
+          <div class="gantt-bar-cell gc-green" style="grid-column: 13 / 15"></div>
+        </div>
+        <div class="gantt-grid">
+          <div class="gantt-row-label">Notify team — Slack</div>
+          <div class="gantt-bar-cell" style="grid-column: 2 / 14"></div>
+          <div class="gantt-bar-cell gc-green" style="grid-column: 14 / 15"></div>
+        </div>
+
+      </div><!-- /gantt-inner -->
+    </div><!-- /gantt-scroll-wrap -->
+
+    <!-- Legend -->
+    <div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:14px;padding-left:4px;">
+      <span style="font-size:11px;color:var(--muted)">
+        <span style="display:inline-block;width:12px;height:12px;background:#c8a96e;border-radius:2px;vertical-align:middle;margin-right:4px;opacity:.7"></span>Planning
+      </span>
+      <span style="font-size:11px;color:var(--muted)">
+        <span style="display:inline-block;width:12px;height:12px;background:#7eb8c8;border-radius:2px;vertical-align:middle;margin-right:4px;opacity:.7"></span>Sample Tracking
+      </span>
+      <span style="font-size:11px;color:var(--muted)">
+        <span style="display:inline-block;width:12px;height:12px;background:#c8c07e;border-radius:2px;vertical-align:middle;margin-right:4px;opacity:.7"></span>Shoot Planning
+      </span>
+      <span style="font-size:11px;color:var(--muted)">
+        <span style="display:inline-block;width:12px;height:12px;background:#c87e7e;border-radius:2px;vertical-align:middle;margin-right:4px;opacity:.7"></span>Execution
+      </span>
+      <span style="font-size:11px;color:var(--muted)">
+        <span style="display:inline-block;width:12px;height:12px;background:#7ec87e;border-radius:2px;vertical-align:middle;margin-right:4px;opacity:.7"></span>Launch
+      </span>
+      <span style="font-size:11px;color:var(--muted)">🔴 = Critical milestone</span>
     </div>
   </div>
 
-  <!-- ── KEY PARTNERS ── -->
+  <!-- ── PERSONNEL BY DEPARTMENT ── -->
   <div class="section">
+    <h2>Personnel by Department</h2>
+    <p style="color:var(--muted);font-size:12px;margin-bottom:20px;">Everyone you interact with, organised by team. Communication tools shown are specific to how you reach each person in the context of this role.</p>
+
+    <!-- PRODUCT DEVELOPMENT -->
+    <div class="dept-block">
+      <div class="dept-header dept-product">📦 Product Development</div>
+      <div class="table-wrap" style="border-top:none;border-radius:0 0 10px 10px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Title</th>
+              <th>What They Do</th>
+              <th>How You Communicate</th>
+              <th>Tools They Work In</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Halla</td>
+              <td>VP Product</td>
+              <td>Owns the product roadmap, line sheets, and quarterly launch planning. Your primary source for understanding what's launching and when.</td>
+              <td><span class="badge badge-system">Slack</span> <span class="badge badge-system">Notion</span></td>
+              <td>Notion (Product Brief), Google Drive (Line Sheets)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PRODUCTION / SUPPLY CHAIN -->
+    <div class="dept-block">
+      <div class="dept-header dept-production">🏭 Production &amp; Supply Chain</div>
+      <div class="table-wrap" style="border-top:none;border-radius:0 0 10px 10px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Title</th>
+              <th>What They Do</th>
+              <th>How You Communicate</th>
+              <th>Tools They Work In</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Noa</td>
+              <td>Production Manager</td>
+              <td>Requests photo samples from factories, maintains contact with suppliers, and provides ad hoc production updates when delays or cancellations occur. Your ground truth on any timing question.</td>
+              <td><span class="badge badge-system">Slack #product-launch</span> <span class="badge badge-system">Asana</span></td>
+              <td>Fulfil (PO delivery dates), Photo Shoot Sample Tracker (Notion), Asana</td>
+            </tr>
+            <tr>
+              <td>Amaan</td>
+              <td>Supply Chain</td>
+              <td>Updates delivery dates in Fulfil for all POs within the next 3 months — every Friday by EOD. This feeds Order Status v2, which is the most reliable timing source you have.</td>
+              <td><span class="badge badge-system">Fulfil</span> <span class="badge badge-system">Slack</span></td>
+              <td>Fulfil (weekly delivery date updates), Order Status v2 (Google Sheets)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CREATIVE / PHOTOGRAPHY -->
+    <div class="dept-block">
+      <div class="dept-header dept-creative">📷 Creative &amp; Photography</div>
+      <div class="table-wrap" style="border-top:none;border-radius:0 0 10px 10px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Title</th>
+              <th>What They Do</th>
+              <th>How You Communicate</th>
+              <th>Tools They Work In</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Jed</td>
+              <td>Art Director</td>
+              <td>Sets creative direction for campaigns and lifestyle shoots. Reviews and approves selects after a shoot. Signs off on final imagery before it goes to retouching. Must be consulted on any lifestyle or hub shoot brief.</td>
+              <td><span class="badge badge-system">Slack</span> <span class="badge badge-system">Asana</span> <span class="badge badge-system">Google Drive</span></td>
+              <td>Production Hub, Google Drive (Photography), Asana</td>
+            </tr>
+            <tr>
+              <td>Ted</td>
+              <td>Producer</td>
+              <td>Books all shoots, hires crew and talent, and schedules the shoot day. Also built and maintains Production Hub — the custom app used to plan shot lists. Work with him early when planning a quarter's shoots.</td>
+              <td><span class="badge badge-system">Slack</span> <span class="badge badge-system">Production Hub</span> <span class="badge badge-system">Asana</span></td>
+              <td>Production Hub (um-shotbuilder.web.app), Asana (Product Launches project)</td>
+            </tr>
+            <tr>
+              <td>Christina</td>
+              <td>Retoucher</td>
+              <td>Handles all post-production: retouching, colour correction, recolouring existing shots for new colours, AI-assisted generation, and final image output. Receives work via Asana tasks with selected images and a clear brief attached.</td>
+              <td><span class="badge badge-system">Asana</span> <span class="badge badge-system">Google Drive</span></td>
+              <td>Asana (task assignments from you), Google Drive (receives selects, delivers finals)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- E-COMMERCE / WEB -->
+    <div class="dept-block">
+      <div class="dept-header dept-ecomm">🛍 E-Commerce &amp; Web</div>
+      <div class="table-wrap" style="border-top:none;border-radius:0 0 10px 10px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Title</th>
+              <th>What They Do</th>
+              <th>How You Communicate</th>
+              <th>Tools They Work In</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Jessica</td>
+              <td>Product Launch Manager</td>
+              <td>Oversees all products going live on the website. Initiates the Quarterly Brief and Photography Brief in Asana, manages product page setup, coordinates new colour variant launches in Shopify, runs final QA before go-live, and shares launch updates via Slack. Your immediate manager-equivalent for the web launch side.</td>
+              <td><span class="badge badge-system">Asana</span> <span class="badge badge-system">Slack #product-launch</span> <span class="badge badge-system">Notion</span></td>
+              <td>Asana (Product Launches project), Shopify, Fulfil, Google Sheets (New Colors tracker, Photo Shoot Sample Tracker)</td>
+            </tr>
+            <tr>
+              <td>Donart</td>
+              <td>Jr. E-Comm Director</td>
+              <td>Executes web-side tasks: builds product pages (PDPs) and updates collections in Shopify. Receives final photography assets from you via Google Drive and implements them. Prepares Shopify variants for new colours at least 60 days before launch.</td>
+              <td><span class="badge badge-system">Asana</span> <span class="badge badge-system">Slack</span> <span class="badge badge-system">Google Drive</span></td>
+              <td>Shopify, Fulfil, Asana (auto-assigned subtasks), Google Drive (receives finals)</td>
+            </tr>
+            <tr>
+              <td>Filipe</td>
+              <td>Graphic Designer</td>
+              <td>Designs the PDP (product detail page) layouts — image carousel arrangement, on-page compositions. Receives final assets from you and works alongside Donart to complete the product page before go-live.</td>
+              <td><span class="badge badge-system">Asana</span> <span class="badge badge-system">Google Drive</span></td>
+              <td>Asana (auto-assigned subtasks), Google Drive (receives finals)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- YOUR ROLE -->
+    <div class="dept-block">
+      <div class="dept-header dept-you">⭐ You — Product Launch Coordinator</div>
+      <div class="table-wrap" style="border-top:none;border-radius:0 0 10px 10px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Your Role</th>
+              <th>What You Own</th>
+              <th>Primary Communication Channels</th>
+              <th>Tools You Manage</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Product Launch Coordinator<br><span style="color:var(--muted);font-size:11px;font-weight:400">→ evolves to Product Launch Manager</span></td>
+              <td>End-to-end coordination from quarterly launch planning → sample tracking → shoot scheduling → retouching → final delivery → web go-live → team notification</td>
+              <td>
+                <span class="badge badge-system">Slack #product-launch</span> — launch updates &amp; notifications<br>
+                <span class="badge badge-system">Asana</span> — task assignment to Christina, Donart, Filipe<br>
+                <span class="badge badge-system">Notion</span> — Sample Tracker &amp; Product Brief<br>
+                <span class="badge badge-system">Google Drive</span> — final asset delivery
+              </td>
+              <td>Photo Shoot Sample Tracker (Notion), Production Hub (shot lists), Asana (Product Launches project), Google Drive → Photography → Products folder</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── KEY PARTNERS ── -->
+  <div class="section" id="partners">
     <h2>Key Partners Quick Reference</h2>
     <div class="table-wrap">
       <table>
@@ -734,6 +1235,29 @@ gantt
 </div>
 
 <script>
+  // ── Active nav highlight on scroll ──
+  (() => {
+    const links = document.querySelectorAll('.toc-link');
+    const sections = [...links].map(l => document.querySelector(l.getAttribute('href')));
+    const nav = document.querySelector('.toc-nav');
+
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          links.forEach(l => l.classList.remove('active'));
+          const active = document.querySelector(`.toc-link[href="#${entry.target.id}"]`);
+          if (active) {
+            active.classList.add('active');
+            // scroll the nav so the active tab is visible
+            active.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+          }
+        }
+      });
+    }, { rootMargin: '-52px 0px -60% 0px', threshold: 0 });
+
+    sections.forEach(s => { if (s) observer.observe(s); });
+  })();
+
   mermaid.initialize({
     startOnLoad: true,
     theme: 'dark',
