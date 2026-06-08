@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Launch Coordinator — Onboarding Visual Guide</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --border: #2e2e2e;
+    --text: #e8e8e8;
+    --muted: #888;
+    --accent: #c8a96e;
+    --accent2: #7eb8c8;
+    --accent3: #7ec87e;
+    --red: #c87e7e;
+    --yellow: #c8c07e;
+    --font: 'Inter', system-ui, -apple-system, sans-serif;
+    --mono: 'JetBrains Mono', 'Fira Code', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 48px 32px;
+  }
+  h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 48px;
+  }
+  h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent2);
+    margin-bottom: 10px;
+  }
+  .section {
+    margin-bottom: 52px;
+  }
+
+  /* ── DIAGRAM CARD ── */
+  .diagram-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px;
+    overflow-x: auto;
+  }
+  .mermaid {
+    display: flex;
+    justify-content: center;
+  }
+
+  /* ── TABLE ── */
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead tr {
+    background: var(--surface2);
+  }
+  thead th {
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--accent);
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+  td {
+    padding: 9px 14px;
+    vertical-align: top;
+    color: var(--text);
+  }
+  td:first-child {
+    font-weight: 600;
+    color: var(--accent2);
+    white-space: nowrap;
+  }
+
+  /* ── BADGE ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+  .badge-owner   { background: rgba(200,169,110,0.15); color: var(--accent); }
+  .badge-support { background: rgba(126,184,200,0.15); color: var(--accent2); }
+  .badge-inform  { background: rgba(126,200,126,0.15); color: var(--accent3); }
+  .badge-shoot   { background: rgba(200,126,126,0.15); color: var(--red); }
+  .badge-retouch { background: rgba(200,192,126,0.15); color: var(--yellow); }
+  .badge-system  { background: rgba(126,184,200,0.12); color: var(--accent2); border: 1px solid rgba(126,184,200,0.2); }
+
+  /* ── GRID ── */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .card ul {
+    list-style: none;
+    margin-top: 6px;
+  }
+  .card ul li {
+    padding: 4px 0;
+    color: var(--text);
+    font-size: 13px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .card ul li::before {
+    content: '→';
+    color: var(--accent);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* ── PHASE STRIP ── */
+  .phase-strip {
+    display: flex;
+    gap: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .phase {
+    flex: 1;
+    padding: 14px 12px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    border-right: 1px solid rgba(255,255,255,0.06);
+  }
+  .phase:last-child { border-right: none; }
+  .phase-label { color: var(--muted); font-size: 10px; font-weight: 400; text-transform: none; margin-top: 3px; }
+  .ph1 { background: rgba(200,169,110,0.12); color: var(--accent); }
+  .ph2 { background: rgba(126,184,200,0.10); color: var(--accent2); }
+  .ph3 { background: rgba(200,126,126,0.10); color: var(--red); }
+  .ph4 { background: rgba(200,192,126,0.10); color: var(--yellow); }
+  .ph5 { background: rgba(126,200,126,0.10); color: var(--accent3); }
+
+  @media (max-width: 700px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    .phase-strip { flex-direction: column; }
+    .phase { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Product Launch Coordinator</h1>
+  <p class="subtitle">Unbound Merino — Onboarding Visual Reference · Role evolves → Product Launch Manager</p>
+
+  <!-- ── PHASE OVERVIEW ── -->
+  <div class="section">
+    <h2>End-to-End Phase Overview</h2>
+    <div class="phase-strip">
+      <div class="phase ph1">Plan<div class="phase-label">Quarterly launch list</div></div>
+      <div class="phase ph2">Forecast<div class="phase-label">Shoot vs. retouch decisions</div></div>
+      <div class="phase ph3">Sample Tracking<div class="phase-label">Request → transit → warehouse</div></div>
+      <div class="phase ph4">Execute<div class="phase-label">Shoot day + post-production</div></div>
+      <div class="phase ph5">Launch<div class="phase-label">Web publish + team notify</div></div>
+    </div>
+  </div>
+
+  <!-- ── MAIN WORKFLOW DIAGRAM ── -->
+  <div class="section">
+    <h2>Full Workflow — Flowchart</h2>
+    <div class="diagram-card">
+      <div class="mermaid">
+flowchart TD
+  A([🗓 Quarter Begins]) --> B[Review Product Brief\nin Notion]
+  B --> C[Cross-check Order Status v2\nfor real arrival dates]
+  C --> D[Flag products with\nuncertain dates → follow up with Noa]
+  D --> E{New product\nor new colour?}
+
+  E -->|New product — Hero| F[Needs Studio + Off-Figure\n+ Hub + possibly Lifestyle]
+  E -->|New colour| G{Existing studio\nshot available?}
+
+  G -->|Yes| H{Will retouch\nlook premium?}
+  G -->|No| F
+
+  H -->|Yes| I[Send to Christina\nfor recolouring/retouch]
+  H -->|No| F
+
+  F --> J[Add to shoot list\nin Production Hub]
+  I --> K[Track retouch status\nin tracker]
+
+  J --> L[Batch products\nby sample arrival + launch date]
+  L --> M[Draft shoot calendar\nwith Ted & Jed]
+  M --> N[Budget check:\n~25–30 products per shoot day]
+  N --> O{Budget OK?}
+  O -->|Over budget| P[Re-evaluate:\nmore retouch, fewer shoots]
+  P --> M
+  O -->|Approved| Q[Book shoot]
+
+  Q --> R[Request samples\nvia Noa / Production Manager]
+  R --> S[Track in Photo Shoot\nSample Tracker:\nRequested → In Transit → At Warehouse]
+  S --> T{Samples arrive\non time?}
+  T -->|No| U[Escalate with Noa;\nadjust shoot date if needed]
+  U --> T
+  T -->|Yes| V[Shoot Day\nStudio / Hub / Lifestyle\nOff-Figure]
+
+  V --> W[Collect selects\nand retouching notes]
+  W --> X[Send to Christina:\nselected images + instructions\n+ deadline tied to launch]
+  X --> Y[QA finals:\ncolour accuracy, crops,\nconsistency, completeness]
+  Y --> Z{Approved?}
+  Z -->|Revisions needed| X
+  Z -->|Approved| AA[Organise in Google Drive:\nPhotography → Products]
+
+  AA --> AB[Deliver to Web team\nDonart + Filipe — PDPs]
+  AA --> AC[Deliver to Marketing\nfor campaign assets]
+
+  AB --> AD[Jessica: product pages\ngo live on site]
+  AD --> AE([📣 Notify team\nvia Slack #product-launch])
+
+  style A fill:#1a1a1a,stroke:#c8a96e,color:#c8a96e
+  style AE fill:#1a1a1a,stroke:#7ec87e,color:#7ec87e
+  style F fill:#1a1a1a,stroke:#c87e7e,color:#c87e7e
+  style I fill:#1a1a1a,stroke:#c8c07e,color:#c8c07e
+  style V fill:#1a1a1a,stroke:#7eb8c8,color:#7eb8c8
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RACI ── -->
+  <div class="section">
+    <h2>RACI — Who Does What</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Task</th>
+            <th>You (PLC)</th>
+            <th>Noa (Prod. Mgr)</th>
+            <th>Ted (Producer)</th>
+            <th>Jed (Art Director)</th>
+            <th>Christina (Retoucher)</th>
+            <th>Jessica (PLM)</th>
+            <th>Donart (E-Comm)</th>
+            <th>Halla (VP Product)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Build quarterly launch list</td>
+            <td><span class="badge badge-owner">Owner</span></td>
+            <td><span class="badge badge-inform">Inform</span></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td><span class="badge badge-support">Source</span></td>
+          </tr>
+          <tr>
+            <td>Confirm sample arrival timing</td>
+            <td><span class="badge badge-owner">Owner</span></td>
+            <td><span class="badge badge-support">Support</span></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Shoot vs. retouch decision</td>
+            <td><span class="badge badge-owner">Owner</span></td>
+            <td></td>
+            <td></td>
+            <td><span class="badge badge-support">Sign-off</span></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Build shot list (Production Hub)</td>
+            <td><span class="badge badge-owner">Owner</span></td>
+            <td></td>
+            <td><span class="badge badge-support">Support</span></td>
+            <td><span class="badge badge-support">Art direction</span></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Book shoot / hire crew + talent</td>
+            <td><span class="badge badge-inform">Inform</span></td>
+            <td></td>
+            <td><span class="badge badge-owner">Owner</span></td>
+            <td><span class="badge badge-support">Support</span></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Request & track samples</td>
+            <td><span class="badge badge-owner">Owner</span></td>
+            <td><span class="badge badge-support">Executes</span></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Shoot day — on-set execution</td>
+            <td><span class="badge badge-support">Coordinate</span></td>
+            <td></td>
+            <td><span class="badge badge-owner">Owner</span></td>
+            <td><span class="badge badge-owner">Art Direction</span></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Selects + retouching brief</td>
+            <td><span class="badge badge-owner">Owner</span></td>
+            <td></td>
+            <td></td>
+            <td><span class="badge badge-support">Selects</span></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Retouching / colour work</td>
+            <td><span class="badge badge-inform">Assign + track</span></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td><span class="badge badge-owner">Owner</span></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>QA final images</td>
+            <td><span class="badge badge-owner">Owner</span></td>
+            <td></td>
+            <td></td>
+            <td><span class="badge badge-support">Sign-off</span></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Organise Drive + deliver finals</td>
+            <td><span class="badge badge-owner">Owner</span></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td><span class="badge badge-inform">Receives</span></td>
+            <td><span class="badge badge-inform">Receives</span></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Product pages go live (PDPs)</td>
+            <td><span class="badge badge-support">Coordinate</span></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td><span class="badge badge-owner">Owner</span></td>
+            <td><span class="badge badge-support">Web exec</span></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Notify team of launch</td>
+            <td><span class="badge badge-owner">Owner</span></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── PHOTOGRAPHY DECISION TREE ── -->
+  <div class="section">
+    <h2>Photography Decision Tree</h2>
+    <div class="diagram-card">
+      <div class="mermaid">
+flowchart LR
+  A[Product to launch] --> B{Brand new\nproduct?}
+  B -->|Yes — Hero Product| C[Studio E-Comm\n✓ Required]
+  B -->|Yes — Hero Product| D[Off-Figure\n✓ Required]
+  B -->|Yes — Hero Product| E[Hub Shoot\n✓ Required]
+  B -->|Yes — Hero Product| F{Campaign-level\nhero?}
+  F -->|Yes| G[Lifestyle Shoot\n✓ Required]
+  F -->|No| H[Lifestyle\n✗ Skip]
+
+  B -->|New colour only| I{Studio shot\nexists?}
+  I -->|No| C
+  I -->|Yes| J{Retouch\nlooks premium?}
+  J -->|Yes| K[Recolouring only\nvia Christina]
+  J -->|No| C
+
+  K --> L{Site getting\nrepetitive imagery?}
+  L -->|Yes| C
+  L -->|No| K
+
+  style G fill:#1a1a1a,stroke:#c87e7e,color:#c87e7e
+  style K fill:#1a1a1a,stroke:#c8c07e,color:#c8c07e
+  style C fill:#1a1a1a,stroke:#7eb8c8,color:#7eb8c8
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SYSTEMS + TOOLS ── -->
+  <div class="section">
+    <h2>Systems &amp; Tools Reference</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Tool</th>
+            <th>Type</th>
+            <th>What you use it for</th>
+            <th>Source of truth for</th>
+            <th>Owner / Contact</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Product Brief</td>
+            <td><span class="badge badge-system">Notion</span></td>
+            <td>See all products expected to launch next quarter, arrival dates</td>
+            <td>Quarterly launch list</td>
+            <td>Halla (VP Product)</td>
+          </tr>
+          <tr>
+            <td>Order Status v2</td>
+            <td><span class="badge badge-system">Google Sheets</span></td>
+            <td>Get updated ETAs when launch dates shift; most reliable timing</td>
+            <td>Real-time arrival timing</td>
+            <td>Noa (Production Mgr)</td>
+          </tr>
+          <tr>
+            <td>Line Sheets</td>
+            <td><span class="badge badge-system">Google Drive</span></td>
+            <td>Visual reference for product planning; may lag on dates</td>
+            <td>Product visual reference</td>
+            <td>Halla (VP Product)</td>
+          </tr>
+          <tr>
+            <td>Photo Shoot Sample Tracker</td>
+            <td><span class="badge badge-system">Notion DB</span></td>
+            <td>Track sample status: Requested → In Transit → At Warehouse</td>
+            <td>Sample location + timing</td>
+            <td>You (PLC)</td>
+          </tr>
+          <tr>
+            <td>Production Hub</td>
+            <td><span class="badge badge-system">Custom Web App</span></td>
+            <td>Build shot lists per product, plan shoot schedule</td>
+            <td>Shot-level planning</td>
+            <td>Ted (Producer)</td>
+          </tr>
+          <tr>
+            <td>Asana — Product Launches</td>
+            <td><span class="badge badge-system">Asana</span></td>
+            <td>Quarterly photo brief tasks; retouching workflow assignments</td>
+            <td>Task tracking</td>
+            <td>You (PLC)</td>
+          </tr>
+          <tr>
+            <td>Google Drive — Photography</td>
+            <td><span class="badge badge-system">Google Drive</span></td>
+            <td>Store all final images: Shoots (by year/shoot) + Products (handoff)</td>
+            <td>Final asset library</td>
+            <td>You (PLC)</td>
+          </tr>
+          <tr>
+            <td>#product-launch (Slack)</td>
+            <td><span class="badge badge-system">Slack</span></td>
+            <td>Share launch updates; notify team when products go live</td>
+            <td>Launch communication</td>
+            <td>You (PLC)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── KEY RULES + CAPACITIES ── -->
+  <div class="section">
+    <h2>Key Rules &amp; Shoot Capacity</h2>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Shoot Day Capacity</h3>
+        <ul>
+          <li>Studio (E-comm): ~25–30 products per day</li>
+          <li>Shooting starts ~9–9:30am, wraps ~5pm</li>
+          <li>~15 min per product (on-model)</li>
+          <li>Lifestyle/outdoors: budget until 11am</li>
+          <li>Account for 1 hr lunch</li>
+          <li>First off-figure shot: ~30 min setup</li>
+          <li>Detail shots (pockets, zippers): varies</li>
+          <li>Hero shots with props: 30–45 min each</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Photography Rules</h3>
+        <ul>
+          <li>Any item launching without existing photos needs a shoot</li>
+          <li>All products need: Studio + Off-Figure</li>
+          <li>Hero products need: add Hub, consider Lifestyle</li>
+          <li>Lifestyle shot done once per product — not for every new colour</li>
+          <li>Don't over-rely on recolours: site starts looking repetitive</li>
+          <li>Always notify team (Slack) when launch goes live</li>
+          <li>When in doubt on timing: ask Noa directly</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Decision Prompts</h3>
+        <ul>
+          <li>Do we already have a studio shot of this item?</li>
+          <li>Is this a new colour or a new product?</li>
+          <li>Will retouching still look premium and accurate?</li>
+          <li>Is the website becoming oversaturated with near-identical imagery?</li>
+          <li>Is sample arriving in time for the planned shoot?</li>
+          <li>Does the hero product need campaign-level lifestyle?</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Photography Types Defined</h3>
+        <ul>
+          <li><strong>Studio (E-comm)</strong> — on-model product shot</li>
+          <li><strong>Off-Figure</strong> — pinups, flat lays, fabric close-ups, detail shots (buttons/zippers/pockets)</li>
+          <li><strong>Hub</strong> — hybrid: fabricated backgrounds + props, lifestyle-esque in studio</li>
+          <li><strong>Lifestyle</strong> — on-location, conceptual, campaign-level</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SAMPLE STATUS FLOW ── -->
+  <div class="section">
+    <h2>Sample Tracking Status Flow</h2>
+    <div class="diagram-card">
+      <div class="mermaid">
+stateDiagram-v2
+  [*] --> Identified : Product added to launch list
+  Identified --> Requested : PLC adds to Sample Tracker;\nNoa requests from factory
+  Requested --> InTransit : Supplier ships sample;\ntracking # added
+  InTransit --> AtWarehouse : Warehouse receives;\nstatus updated
+  AtWarehouse --> OnSet : Sample pulled for shoot day
+  OnSet --> Complete : Shoot done;\nremove from tracker
+  Requested --> Escalate : Due date &lt; 1 month,\nno update → follow up
+  Escalate --> InTransit : Supplier responds
+      </div>
+    </div>
+  </div>
+
+  <!-- ── QUARTERLY RHYTHM ── -->
+  <div class="section">
+    <h2>Quarterly Rhythm</h2>
+    <div class="diagram-card">
+      <div class="mermaid">
+gantt
+  title Typical Quarter — Product Launch Coordinator
+  dateFormat  YYYY-MM-DD
+  axisFormat  %b %d
+
+  section Planning
+  Review Product Brief           :active, plan1, 2026-01-01, 7d
+  Cross-check Order Status v2    :plan2, after plan1, 5d
+  Determine shoot vs retouch     :plan3, after plan2, 5d
+
+  section Sample Tracking
+  Request samples via Noa        :samp1, after plan3, 3d
+  Monitor in-transit status      :samp2, after samp1, 30d
+  Confirm at-warehouse receipt   :samp3, after samp2, 7d
+
+  section Shoot Planning
+  Build shot lists (Production Hub) :shoot1, 2026-01-10, 7d
+  Draft shoot calendar w/ Ted & Jed :shoot2, after shoot1, 5d
+  Book shoot #1                  :shoot3, after shoot2, 2d
+  Book shoot #2 (if needed)      :shoot4, 2026-02-01, 2d
+
+  section Execution
+  Shoot Day(s)                   :crit, exec1, 2026-02-10, 3d
+  Selects + retouching brief     :exec2, after exec1, 4d
+  Retouching by Christina        :exec3, after exec2, 14d
+  QA + approvals                 :exec4, after exec3, 4d
+
+  section Launch
+  Deliver finals to Web + Marketing :launch1, after exec4, 2d
+  Product pages go live          :crit, launch2, after launch1, 3d
+  Notify team via Slack          :launch3, after launch2, 1d
+      </div>
+    </div>
+  </div>
+
+  <!-- ── KEY PARTNERS ── -->
+  <div class="section">
+    <h2>Key Partners Quick Reference</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Person</th>
+            <th>Role</th>
+            <th>What they own</th>
+            <th>When you go to them</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Halla</td>
+            <td>VP Product</td>
+            <td>Product development, line sheets, launch planning</td>
+            <td>Understanding what's launching and when; product context</td>
+          </tr>
+          <tr>
+            <td>Noa</td>
+            <td>Production Manager</td>
+            <td>Sample procurement, factory contact, status updates</td>
+            <td>Any question on sample timing — she's the ground truth when in doubt</td>
+          </tr>
+          <tr>
+            <td>Jed</td>
+            <td>Art Director</td>
+            <td>Campaign direction, lifestyle needs, art sign-off</td>
+            <td>Selects, lifestyle direction, creative decisions</td>
+          </tr>
+          <tr>
+            <td>Ted</td>
+            <td>Producer</td>
+            <td>Books shoots, hires crew & talent, built Production Hub</td>
+            <td>Booking shoots, building shot lists, shoot day logistics</td>
+          </tr>
+          <tr>
+            <td>Christina</td>
+            <td>Retoucher</td>
+            <td>Photo editing, retouching, recolouring, AI gen, final output</td>
+            <td>Send selects + brief after shoot; track via Asana</td>
+          </tr>
+          <tr>
+            <td>Jessica</td>
+            <td>Product Launch Manager</td>
+            <td>Managing products going live on the website</td>
+            <td>Hand off finals; coordinate PDP go-live timing</td>
+          </tr>
+          <tr>
+            <td>Donart</td>
+            <td>Jr. E-Comm Director</td>
+            <td>Web execution — product pages, collections</td>
+            <td>Finals delivery; web page setup</td>
+          </tr>
+          <tr>
+            <td>Filipe</td>
+            <td>Graphic Designer</td>
+            <td>PDP layouts</td>
+            <td>Finals delivery for PDP design</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <p style="color:var(--muted);font-size:11px;text-align:center;padding-top:24px;">
+    Generated 2026-06-07 · Unbound Merino · Product Launch Coordinator Onboarding
+  </p>
+
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#242424',
+      primaryTextColor: '#e8e8e8',
+      primaryBorderColor: '#2e2e2e',
+      lineColor: '#888',
+      secondaryColor: '#1a1a1a',
+      tertiaryColor: '#0f0f0f',
+      edgeLabelBackground: '#1a1a1a',
+    },
+    flowchart: { curve: 'basis', htmlLabels: true },
+    gantt: { axisFormat: '%b %d' }
+  });
+</script>
+</body>
+</html>
