@@ -13,6 +13,25 @@
 .vscode/
 .idea/
 
+# Claude Code local config
+.claude/settings.local.json
+.claude/worktrees/
+
+# SSH keys — never commit
+eval*
+id_rsa*
+id_ed25519*
+*.pem
+*.key
+*.pub
+
+# Office / local docs — not portfolio content
+*.xlsx
+*.pdf
+*.docx
+LOCAL-*.md
+*-Personnel.*
+
 # Misc
 *.log
 Thumbs.db

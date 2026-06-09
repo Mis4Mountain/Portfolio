@@ -1,38 +1,28 @@
-# Kinji Product Case Study — Revamped Portfolio Site
+# Portfolio — Mayumi Maemura
 
-A Vercel-ready single-page portfolio case study.
+Deployed on Vercel. The root `index.html` is a portfolio landing page linking to all projects.
 
-This version emphasizes:
+## Structure
 
-- Marcus's actual product ownership
-- PRD/user-story thinking
-- onboarding strategy
-- household profile and permission logic
-- pantry/inventory data modeling
-- AI recipe generation pipeline
-- allergen warning and processing-state UX
-- product analytics instrumentation
-- experiment planning
-- AI API unit economics
+```
+/
+├── index.html                                  # Portfolio landing page
+├── vercel.json                                 # Root Vercel config (clean URLs, security headers)
+├── Product-Launch-Coordinator-Onboarding.html  # Standalone onboarding visual guide
+├── kinji-portfolio/
+│   └── index.html                              # Kinji product case study
+├── hts-calculator/
+│   └── index.html                              # HTS duty calculator tool
+└── tfss-dashboard/
+    └── index.html                              # TFSS operations dashboard
+```
 
-## Files
+## Projects
 
-- `index.html` — full single-page portfolio
-- `vercel.json` — Vercel clean URLs and security headers
-- `README.md` — project notes
-
-## Deploy to Vercel
-
-1. Upload these files to the root of the GitHub repo.
-2. In Vercel, import the repo.
-3. Use default settings and deploy.
-
-## Suggested next additions
-
-Add real screenshots or diagrams as image assets:
-
-- PRD excerpt image
-- onboarding wireframe
-- data model diagram
-- recipe generation flow
-- dashboard/analytics mock
+| Project | Path | Description |
+|---|---|---|
+| Portfolio Home | `/` | Landing page linking to all projects |
+| Product Launch Coordinator | `/Product-Launch-Coordinator-Onboarding` | Onboarding visual guide — workflow, RACI, Gantt |
+| Kinji Case Study | `/kinji-portfolio` | AI-powered food intelligence product case study |
+| HTS Duty Calculator | `/hts-calculator` | US apparel import duty calculator |
+| TFSS Dashboard | `/tfss-dashboard` | Operations and supply chain KPI dashboard |
